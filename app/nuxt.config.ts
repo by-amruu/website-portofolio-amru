@@ -13,11 +13,13 @@ export default defineNuxtConfig({
     head: {
       title: 'Amru | Portfolio & Systems',
       meta: [
-        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no' },
-        { name: 'description', content: 'Portfolio Website Amru - Developer, Builder & Creative Technologist.' },
-        { name: 'theme-color', content: '#FFE600' }
+        { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' },
+        { name: 'description', content: 'Koleksi karya website, eksplorasi desain kemasan, edukasi grafis, dan proyek kreatif lintas platform oleh Amru.' },
+        { name: 'theme-color', content: '#050505' }
       ],
       link: [
+        { rel: 'icon', type: 'image/png', href: '/favicon.png' },
+        { rel: 'apple-touch-icon', href: '/favicon.png' },
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         {

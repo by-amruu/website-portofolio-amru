@@ -1,19 +1,20 @@
 <template>
   <div class="min-h-screen bg-[#050505] text-[#FAFAFA] antialiased selection:bg-white selection:text-black">
     
-    <!-- Top Floating Navbar -->
+    <!-- Top Floating Navbar: Lebar & Lega (max-w-7xl) -->
     <header class="sticky top-0 z-40 bg-[#050505]/85 backdrop-blur-xl border-b border-white/[0.06]">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         <NuxtLink to="/" class="flex items-center gap-3 group">
-          <div class="w-8 h-8 rounded-full bg-white text-black font-extrabold flex items-center justify-center text-xs tracking-tighter">
-            A
+          <!-- Custom Icon dari .gallery/icon-websiteku.png -->
+          <div class="w-8 h-8 rounded-full overflow-hidden border border-white/20 bg-black flex items-center justify-center group-hover:border-white transition-colors">
+            <img src="/favicon.png" alt="Amru Icon" class="w-full h-full object-cover" />
           </div>
           <span class="font-medium text-sm text-neutral-200 group-hover:text-white transition-colors">
             amru.dev
           </span>
         </NuxtLink>
 
-        <!-- Clean Navigation Links (Bebas Tombol Admin) -->
+        <!-- Clean Navigation Links -->
         <nav class="flex items-center gap-6 text-xs text-neutral-400">
           <a href="/#portfolio" class="hover:text-white transition-colors">Portofolio</a>
           <a href="/#contact" class="hover:text-white transition-colors">Kontak</a>
@@ -33,10 +34,13 @@
       <NuxtPage />
     </main>
 
-    <!-- Bottom Simple Footer (Bebas Link Admin) -->
+    <!-- Bottom Simple Footer -->
     <footer class="border-t border-white/[0.06] py-8 text-center text-xs text-neutral-400">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <p>© 2026 Amru. Seluruh hak cipta dilindungi.</p>
+        <div class="flex items-center gap-2">
+          <img src="/favicon.png" alt="Amru Logo" class="w-4 h-4 rounded-full" />
+          <p>© 2026 Amru. Seluruh hak cipta dilindungi.</p>
+        </div>
         <p class="text-neutral-500 font-mono text-[11px]">Bespoke Web & Visual Systems</p>
       </div>
     </footer>
