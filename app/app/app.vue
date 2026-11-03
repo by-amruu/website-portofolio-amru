@@ -10,14 +10,18 @@
             <img src="/favicon.png" alt="Amru Icon" class="w-full h-full object-cover" />
           </div>
           <span class="font-medium text-sm text-neutral-200 group-hover:text-white transition-colors">
-            amru.dev
+            by.amruu
           </span>
         </NuxtLink>
 
-        <!-- Clean Navigation Links -->
+        <!-- Clean Navigation Links: Smooth Scroll tanpa meninggalkan hash kotor di URL -->
         <nav class="flex items-center gap-6 text-xs text-neutral-400">
-          <a href="/#portfolio" class="hover:text-white transition-colors">Portofolio</a>
-          <a href="/#contact" class="hover:text-white transition-colors">Kontak</a>
+          <button @click="scrollToSection('portfolio')" class="hover:text-white transition-colors cursor-pointer">
+            Portofolio
+          </button>
+          <button @click="scrollToSection('contact')" class="hover:text-white transition-colors cursor-pointer">
+            Kontak
+          </button>
           <a 
             href="https://github.com/by-amruu" 
             target="_blank" 
@@ -39,7 +43,7 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-2">
           <img src="/favicon.png" alt="Amru Logo" class="w-4 h-4 rounded-full" />
-          <p>© 2026 Amru. Seluruh hak cipta dilindungi.</p>
+          <p>© 2026 by.amruu. Seluruh hak cipta dilindungi.</p>
         </div>
         <p class="text-neutral-500 font-mono text-[11px]">Bespoke Web & Visual Systems</p>
       </div>
@@ -47,3 +51,29 @@
 
   </div>
 </template>
+
+<script setup>
+const router = useRouter()
+const route = useRoute()
+
+const scrollToSection = (id) => {
+  if (route.path !== '/') {
+    router.push('/').then(() => {
+      setTimeout(() => {
+        const el = document.getElementById(id)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+      }, 100)
+    })
+    return
+  }
+
+  const el = document.getElementById(id)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth' })
+    // Menghilangkan hash dari browser history agar URL tetap clean & profesional (amru.dev / portofolioamru.netlify.app)
+    if (window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname)
+    }
+  }
+}
+</script>

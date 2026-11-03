@@ -11,10 +11,10 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   app: {
     head: {
-      title: 'Amru | Portfolio & Systems',
+      title: 'by.amruu | Portfolio & Creative Works',
       meta: [
         { name: 'viewport', content: 'width=device-width, initial-scale=1, maximum-scale=1' },
-        { name: 'description', content: 'Koleksi karya website, eksplorasi desain kemasan, edukasi grafis, dan proyek kreatif lintas platform oleh Amru.' },
+        { name: 'description', content: 'Koleksi karya website, eksplorasi desain kemasan, edukasi grafis, dan proyek kreatif lintas platform oleh by.amruu.' },
         { name: 'theme-color', content: '#050505' }
       ],
       link: [
