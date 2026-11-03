@@ -1,276 +1,45 @@
 <template>
-  <main class="min-h-screen max-w-[440px] mx-auto bg-brutal-bg text-brutal-dark pb-28 px-4 pt-6 selection:bg-brutal-yellow">
+  <div class="min-h-screen bg-[#050505] text-[#FAFAFA] antialiased selection:bg-white selection:text-black">
     
-    <!-- Top System Bar / Header (Mobile Status Style) -->
-    <header class="flex items-center justify-between border-3 border-brutal-dark bg-white p-3 shadow-brutal mb-6">
-      <div class="flex items-center gap-2">
-        <span class="inline-block w-3 h-3 bg-red-500 rounded-full border-2 border-brutal-dark"></span>
-        <span class="inline-block w-3 h-3 bg-yellow-400 rounded-full border-2 border-brutal-dark"></span>
-        <span class="inline-block w-3 h-3 bg-green-500 rounded-full border-2 border-brutal-dark"></span>
-        <span class="font-mono text-xs font-bold tracking-tight uppercase ml-1">SYSTEM.ONLINE</span>
-      </div>
-      <div class="font-mono text-xs font-bold bg-brutal-lime px-2 py-0.5 border-2 border-brutal-dark">
-        POCO // 393px
+    <!-- Top Floating Navbar -->
+    <header class="sticky top-0 z-40 bg-[#050505]/85 backdrop-blur-xl border-b border-white/[0.06]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+        <NuxtLink to="/" class="flex items-center gap-3 group">
+          <div class="w-8 h-8 rounded-full bg-white text-black font-extrabold flex items-center justify-center text-xs tracking-tighter">
+            A
+          </div>
+          <span class="font-medium text-sm text-neutral-200 group-hover:text-white transition-colors">
+            amru.dev
+          </span>
+        </NuxtLink>
+
+        <!-- Clean Navigation Links (Bebas Tombol Admin) -->
+        <nav class="flex items-center gap-6 text-xs text-neutral-400">
+          <a href="/#portfolio" class="hover:text-white transition-colors">Portofolio</a>
+          <a href="/#contact" class="hover:text-white transition-colors">Kontak</a>
+          <a 
+            href="https://github.com/by-amruu" 
+            target="_blank" 
+            class="px-3.5 py-1.5 rounded-full bg-white/10 text-white hover:bg-white hover:text-black transition-all"
+          >
+            GitHub ↗
+          </a>
+        </nav>
       </div>
     </header>
 
-    <!-- Hero Section (Brutalist Badge & Identity) -->
-    <section class="border-3 border-brutal-dark bg-white p-5 shadow-brutal mb-6 relative overflow-hidden">
-      <div class="absolute -right-10 -bottom-10 w-28 h-28 bg-brutal-yellow border-3 border-brutal-dark rotate-12 -z-0 opacity-40"></div>
-      
-      <div class="relative z-10">
-        <div class="inline-block bg-brutal-yellow border-2 border-brutal-dark font-mono text-xs font-bold px-2 py-1 mb-3">
-          CREATIVE DEVELOPER & BUILDER
-        </div>
-        <h1 class="text-3xl font-extrabold tracking-tight leading-none mb-2 uppercase">
-          AMRU.
-        </h1>
-        <p class="font-mono text-sm leading-relaxed text-neutral-800 mb-4">
-          Building bespoke web systems, authentic mobile experiences, and zero-slop interfaces.
-        </p>
+    <!-- Main Container Lebar & Lega -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
+      <NuxtPage />
+    </main>
 
-        <!-- Quick Status Chips -->
-        <div class="grid grid-cols-2 gap-2 font-mono text-xs font-bold">
-          <div class="bg-neutral-100 border-2 border-brutal-dark p-2 flex items-center gap-2">
-            <span class="w-2 h-2 bg-brutal-lime rounded-full animate-ping"></span>
-            OPEN TO WORK
-          </div>
-          <div class="bg-neutral-100 border-2 border-brutal-dark p-2 text-center">
-            ID / GMT+7
-          </div>
-        </div>
+    <!-- Bottom Simple Footer (Bebas Link Admin) -->
+    <footer class="border-t border-white/[0.06] py-8 text-center text-xs text-neutral-400">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <p>© 2026 Amru. Seluruh hak cipta dilindungi.</p>
+        <p class="text-neutral-500 font-mono text-[11px]">Bespoke Web & Visual Systems</p>
       </div>
-    </section>
+    </footer>
 
-    <!-- Navigation / Filter Segment (Brutalist Tabs) -->
-    <section class="flex gap-2 mb-6 font-mono text-xs font-bold">
-      <button 
-        @click="activeTab = 'projects'"
-        class="flex-1 py-2.5 px-3 border-3 border-brutal-dark transition-all duration-100 text-center uppercase"
-        :class="activeTab === 'projects' ? 'bg-brutal-dark text-white shadow-brutal' : 'bg-white text-brutal-dark'"
-      >
-        WEBSITES [{{ displayedProjects.length }}]
-      </button>
-      <button 
-        @click="activeTab = 'social'"
-        class="flex-1 py-2.5 px-3 border-3 border-brutal-dark transition-all duration-100 text-center uppercase"
-        :class="activeTab === 'social' ? 'bg-brutal-dark text-white shadow-brutal' : 'bg-white text-brutal-dark'"
-      >
-        CREATIVE FEED [{{ displayedSocials.length }}]
-      </button>
-    </section>
-
-    <!-- Tab 1: Projects Showcase -->
-    <section v-if="activeTab === 'projects'" class="space-y-5">
-      <div v-if="isLoading" class="border-3 border-brutal-dark p-4 bg-white font-mono text-xs text-center shadow-brutal">
-        FETCHING SYSTEMS FROM SUPABASE...
-      </div>
-
-      <article 
-        v-for="(project, idx) in displayedProjects" 
-        :key="project.id || idx"
-        class="brutal-card p-4 relative group"
-      >
-        <div class="flex justify-between items-start gap-2 mb-2">
-          <span class="font-mono text-xs font-bold bg-neutral-100 border-2 border-brutal-dark px-2 py-0.5">
-            #0{{ idx + 1 }} // {{ project.category || 'PROJECT' }}
-          </span>
-          <span v-if="project.featured" class="font-mono text-xs font-bold bg-brutal-pink text-white border-2 border-brutal-dark px-2 py-0.5">
-            STAR
-          </span>
-        </div>
-
-        <h3 class="text-xl font-bold uppercase tracking-tight mb-1">
-          {{ project.title }}
-        </h3>
-        <p class="font-mono text-xs text-neutral-700 leading-normal mb-3">
-          {{ project.tagline }}
-        </p>
-
-        <!-- Tech Stack Tags -->
-        <div class="flex flex-wrap gap-1.5 mb-4">
-          <span 
-            v-for="tech in (project.tech_stack || [])" 
-            :key="tech"
-            class="font-mono text-[10px] font-bold bg-brutal-bg border border-brutal-dark px-1.5 py-0.5"
-          >
-            {{ tech }}
-          </span>
-        </div>
-
-        <!-- Action Links -->
-        <div class="flex gap-2">
-          <a 
-            v-if="project.live_url" 
-            :href="project.live_url" 
-            target="_blank"
-            class="brutal-btn flex-1 py-2 text-center text-xs tracking-wider"
-          >
-            LIVE DEMO ↗
-          </a>
-          <a 
-            v-if="project.github_url" 
-            :href="project.github_url" 
-            target="_blank"
-            class="bg-white border-3 border-brutal-dark font-mono font-bold text-xs p-2 shadow-brutal-sm active:translate-x-0.5 active:translate-y-0.5"
-          >
-            SOURCE
-          </a>
-        </div>
-      </article>
-    </section>
-
-    <!-- Tab 2: Curated Social Media Feed (TikTok & IG Sync) -->
-    <section v-if="activeTab === 'social'" class="space-y-5">
-      <div class="border-2 border-dashed border-brutal-dark p-3 text-center bg-white font-mono text-xs mb-3">
-        ⚡ AUTOSYNCED FROM TIKTOK & INSTAGRAM
-      </div>
-
-      <article 
-        v-for="(feed, idx) in displayedSocials" 
-        :key="feed.id || idx"
-        class="brutal-card p-4"
-      >
-        <div class="flex items-center justify-between mb-2">
-          <span 
-            class="font-mono text-xs font-bold px-2 py-0.5 border-2 border-brutal-dark uppercase"
-            :class="feed.platform === 'tiktok' ? 'bg-black text-white' : 'bg-brutal-pink text-white'"
-          >
-            {{ feed.platform }}
-          </span>
-          <span class="font-mono text-[10px] text-neutral-500 font-bold">
-            {{ feed.posted_at ? new Date(feed.posted_at).toLocaleDateString() : 'RECENT' }}
-          </span>
-        </div>
-
-        <p class="font-mono text-xs leading-relaxed mb-3">
-          {{ feed.caption }}
-        </p>
-
-        <a 
-          :href="feed.permalink" 
-          target="_blank"
-          class="inline-block w-full py-2 bg-brutal-cyan border-2 border-brutal-dark text-center font-mono font-bold text-xs shadow-brutal-sm"
-        >
-          VIEW ON {{ (feed.platform || 'WEB').toUpperCase() }} ↗
-        </a>
-      </article>
-    </section>
-
-    <!-- Bottom Mobile Sticky Quick Bar (Thumb-friendly for POCO M6) -->
-    <nav class="fixed bottom-3 left-4 right-4 max-w-[408px] mx-auto bg-brutal-yellow border-3 border-brutal-dark shadow-brutal-lg p-2.5 flex items-center justify-between z-50">
-      <div class="font-mono text-xs font-bold px-2">
-        AMRU.SYSTEMS
-      </div>
-      <div class="flex gap-2">
-        <a 
-          href="https://github.com/by-amruu" 
-          target="_blank"
-          class="bg-white border-2 border-brutal-dark px-3 py-1 font-mono text-xs font-bold shadow-brutal-sm"
-        >
-          GITHUB
-        </a>
-        <a 
-          href="mailto:amru@example.com" 
-          class="bg-brutal-dark text-white border-2 border-brutal-dark px-3 py-1 font-mono text-xs font-bold shadow-brutal-sm"
-        >
-          CONTACT
-        </a>
-      </div>
-    </nav>
-
-  </main>
+  </div>
 </template>
-
-<script setup>
-import { ref, onMounted, computed } from 'vue'
-
-const activeTab = ref('projects')
-const isLoading = ref(false)
-
-const dbProjects = ref([])
-const dbSocials = ref([])
-
-// Fallback data jika database Supabase Anda masih kosong tabelnya
-const fallbackProjects = [
-  {
-    id: 'f1',
-    title: 'Personal Neo-Brutalist Hub',
-    tagline: 'High-contrast mobile portfolio with GSAP animations & Supabase data sync.',
-    category: 'Portfolio',
-    tech_stack: ['Nuxt 3', 'Vue 3', 'Tailwind', 'GSAP', 'Supabase'],
-    featured: true,
-    live_url: '#',
-    github_url: 'https://github.com/by-amruu/website-portofolio-amru'
-  },
-  {
-    id: 'f2',
-    title: 'Minimalist Markdown Engine',
-    tagline: 'Zero-slop static note publisher with ultra-clean typographic hierarchy.',
-    category: 'Web App',
-    tech_stack: ['Vue 3', 'Vite', 'Tailwind CSS'],
-    featured: false,
-    live_url: '#',
-    github_url: '#'
-  }
-]
-
-const fallbackSocials = [
-  {
-    id: 's1',
-    platform: 'tiktok',
-    caption: 'Proses mendesain UI Brutalism yang nyaman di layar HP 120Hz tanpa efek template murahan.',
-    posted_at: '2026-11-03',
-    permalink: 'https://tiktok.com'
-  },
-  {
-    id: 's2',
-    platform: 'instagram',
-    caption: 'Setup database PostgreSQL & RLS policy untuk portofolio developer modern.',
-    posted_at: '2026-11-01',
-    permalink: 'https://instagram.com'
-  }
-]
-
-const displayedProjects = computed(() => {
-  return dbProjects.value.length > 0 ? dbProjects.value : fallbackProjects
-})
-
-const displayedSocials = computed(() => {
-  return dbSocials.value.length > 0 ? dbSocials.value : fallbackSocials
-})
-
-const { $supabase } = useNuxtApp()
-
-onMounted(async () => {
-  if (!$supabase) return
-
-  isLoading.value = true
-  try {
-    // 1. Fetch Projects from Supabase
-    const { data: projectsData, error: projErr } = await $supabase
-      .from('projects')
-      .select('*')
-      .order('order_priority', { ascending: false })
-
-    if (!projErr && projectsData && projectsData.length > 0) {
-      dbProjects.value = projectsData
-    }
-
-    // 2. Fetch Curated Social Feeds
-    const { data: socialsData, error: socErr } = await $supabase
-      .from('social_feeds')
-      .select('*')
-      .eq('is_featured', true)
-      .order('posted_at', { ascending: false })
-
-    if (!socErr && socialsData && socialsData.length > 0) {
-      dbSocials.value = socialsData
-    }
-  } catch (err) {
-    console.warn('[Supabase Fetch Error]', err)
-  } finally {
-    isLoading.value = false
-  }
-})
-</script>
