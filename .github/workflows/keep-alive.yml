@@ -1,0 +1,26 @@
+name: Keep Supabase Database Active (Anti-Pause)
+
+on:
+  schedule:
+    # Berjalan setiap 4 hari sekali pada jam 04:00 UTC (Sangat ringan, jauh dari batas jeda 7 hari Supabase)
+    - cron: '0 4 */4 * *'
+  workflow_dispatch: # Memungkinkan kamu menjalankan manual kapan saja lewat tab Actions
+
+jobs:
+  ping-supabase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          echo "Pinging Supabase to prevent project hibernation..."
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/portfolio_items?select=id&limit=1")
+          echo "Supabase Response HTTP Code: $RESPONSE"
+          if [ "$RESPONSE" -eq 200 ] || [ "$RESPONSE" -eq 206 ]; then
+            echo "Successfully pinged Supabase. Database stays awake!"
+          else
+            echo "Ping completed with status $RESPONSE"
+          fi
+
