@@ -1,0 +1,10 @@
+[build]
+  base = "app"
+  publish = ".output/public"
+  command = "npm run generate"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
