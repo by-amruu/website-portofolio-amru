@@ -1,6 +1,12 @@
 <template>
   <div class="mx-auto max-w-[1200px] px-5 pb-28 pt-28 sm:px-8 md:pt-36">
-    <Transition name="swap" mode="out-in">
+    <!-- Status Loading Sesi Awal (Mencegah kedipan form login jika masih dalam 15 menit) -->
+    <div v-if="checkingSession" class="flex min-h-[50vh] flex-col items-center justify-center gap-4">
+      <span class="inline-block h-6 w-6 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+      <p class="text-xs uppercase tracking-widest text-ink/50">Memeriksa sesi...</p>
+    </div>
+
+    <Transition v-else name="swap" mode="out-in">
       <!-- ================= LOGIN ================= -->
       <section v-if="!authed" key="login" class="grid min-h-[60vh] place-items-center">
         <form class="w-full max-w-sm" :class="{ shake: shaking }" novalidate @submit.prevent="login">
@@ -207,7 +213,11 @@ const toast = useToast()
 const { confirm } = useConfirm()
 const rx = useReactions()
 
-// --- sesi Supabase Auth ---
+// --- sesi Supabase Auth & Timeout 15 Menit ---
+const INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000 // 15 menit
+const LAST_ACTIVE_KEY = 'amru_admin_last_active'
+
+const checkingSession = ref(true)
 const authed = ref(false)
 const email = ref('')
 const password = ref('')
@@ -217,6 +227,37 @@ const shaking = ref(false)
 const loggingIn = ref(false)
 const emailEl = ref<HTMLInputElement | null>(null)
 const pwEl = ref<HTMLInputElement | null>(null)
+
+let inactivityTimer: any = null
+
+function updateActivity() {
+  if (!authed.value) return
+  const now = Date.now()
+  try {
+    localStorage.setItem(LAST_ACTIVE_KEY, now.toString())
+  } catch {}
+
+  clearTimeout(inactivityTimer)
+  inactivityTimer = setTimeout(() => {
+    checkInactivityAndLogout()
+  }, INACTIVITY_TIMEOUT_MS)
+}
+
+async function checkInactivityAndLogout() {
+  const lastActiveStr = localStorage.getItem(LAST_ACTIVE_KEY)
+  const lastActive = lastActiveStr ? parseInt(lastActiveStr, 10) : 0
+  const elapsed = Date.now() - lastActive
+
+  if (elapsed >= INACTIVITY_TIMEOUT_MS) {
+    if (supabase) await supabase.auth.signOut()
+    authed.value = false
+    clearTimeout(inactivityTimer)
+    localStorage.removeItem(LAST_ACTIVE_KEY)
+    toast.info('Sesi berakhir otomatis karena 15 menit tidak ada aktivitas.')
+    return true
+  }
+  return false
+}
 
 async function login() {
   if (!supabase) {
@@ -251,6 +292,7 @@ async function login() {
     if (data.session) {
       authed.value = true
       password.value = ''
+      updateActivity()
       toast.success('Autentikasi Supabase berhasil. Selamat datang!')
       refresh()
     }
@@ -262,6 +304,10 @@ async function login() {
 }
 
 async function logout() {
+  clearTimeout(inactivityTimer)
+  try {
+    localStorage.removeItem(LAST_ACTIVE_KEY)
+  } catch {}
   if (supabase) {
     await supabase.auth.signOut()
   }
@@ -386,27 +432,59 @@ async function restore(it: PortfolioItem) {
   }
 }
 
-onMounted(async () => {
-  if (!supabase) return
+// Event listener untuk reset waktu ketidakaktifan saat ada aksi mouse/keyboard
+const activityEvents = ['mousedown', 'keydown', 'scroll', 'touchstart']
+function attachActivityListeners() {
+  activityEvents.forEach((ev) => window.addEventListener(ev, updateActivity, { passive: true }))
+}
+function detachActivityListeners() {
+  activityEvents.forEach((ev) => window.removeEventListener(ev, updateActivity))
+}
 
-  // Periksa apakah sudah ada sesi login aktif di Supabase Auth
+onMounted(async () => {
+  if (!supabase) {
+    checkingSession.value = false
+    return
+  }
+
+  // Periksa apakah sesi masih valid dan belum melewati batas 15 menit
   try {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session) {
-      authed.value = true
-      refresh()
-      return
+    const isExpired = await checkInactivityAndLogout()
+    if (!isExpired) {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        authed.value = true
+        updateActivity()
+        attachActivityListeners()
+        await refresh()
+        checkingSession.value = false
+        return
+      }
     }
   } catch {
     /* abaikan */
+  } finally {
+    checkingSession.value = false
   }
 
-  // Listener bila status auth berubah (mis. token refresh atau sign out)
+  // Listener bila status auth berubah
   supabase.auth.onAuthStateChange((_event: string, session: any) => {
     authed.value = !!session
-    if (session) refresh()
+    if (session) {
+      updateActivity()
+      attachActivityListeners()
+      refresh()
+    } else {
+      detachActivityListeners()
+    }
   })
 
+  await nextTick()
   emailEl.value?.focus()
+})
+
+onBeforeUnmount(() => {
+  detachActivityListeners()
+  clearTimeout(inactivityTimer)
 })
 </script>
