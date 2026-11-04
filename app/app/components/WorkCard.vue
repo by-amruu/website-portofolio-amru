@@ -12,7 +12,7 @@
         <img
           v-if="!failed"
           ref="img"
-          :src="thumbnailUrl"
+          :src="item.preview_url"
           :alt="item.title"
           loading="lazy"
           decoding="async"
@@ -68,15 +68,6 @@ const failed = ref(false)
 const img = ref<HTMLImageElement | null>(null)
 
 const number = computed(() => String(props.index + 1).padStart(2, '0'))
-
-// Transformasi URL thumbnail ke WebP beresolusi pas (~720px) dengan bobot ringan
-const thumbnailUrl = computed(() => {
-  return getOptimizedImageUrl(props.item.preview_url, {
-    width: props.item.aspect_ratio === '16:9' ? 960 : 720,
-    quality: 80,
-    format: 'webp'
-  })
-})
 
 // Gambar yang sudah ada di cache bisa selesai dimuat sebelum handler @load terpasang.
 onMounted(() => {
