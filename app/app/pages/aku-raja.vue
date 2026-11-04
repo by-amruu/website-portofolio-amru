@@ -1,425 +1,361 @@
 <template>
-  <div class="space-y-10 max-w-4xl mx-auto pb-20 relative">
-    
-    <!-- 🔔 TOAST NOTIFICATION -->
-    <transition name="toast">
-      <div 
-        v-if="toast.show" 
-        class="fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-2xl backdrop-blur-md"
-        :class="toast.type === 'error' ? 'bg-red-950/90 border-red-500/40 text-red-200' : 'bg-emerald-950/90 border-emerald-500/40 text-emerald-200'"
-      >
-        <span class="text-sm">{{ toast.type === 'error' ? '⚠️' : '✓' }}</span>
-        <p class="text-xs font-medium">{{ toast.message }}</p>
-        <button @click="toast.show = false" class="text-neutral-400 hover:text-white text-xs ml-2">✕</button>
-      </div>
-    </transition>
+  <div class="mx-auto max-w-[1200px] px-5 pb-28 pt-28 sm:px-8 md:pt-36">
+    <Transition name="swap" mode="out-in">
+      <!-- ================= LOGIN ================= -->
+      <section v-if="!authed" key="login" class="grid min-h-[60vh] place-items-center">
+        <form class="w-full max-w-sm" :class="{ shake: shaking }" novalidate @submit.prevent="login">
+          <p class="label">Area pribadi</p>
+          <h1 class="mt-4 font-display text-6xl leading-none tracking-[-0.04em]">Masuk<span class="text-accent">.</span></h1>
+          <p class="mt-5 text-sm leading-relaxed text-ink/70">
+            Khusus pemilik portofolio. Masukkan kata sandi untuk menambah, mengubah, atau menghapus karya.
+          </p>
 
-    <!-- ⚠️ CONFIRMATION POPUP MODAL -->
-    <div 
-      v-if="confirmModal.show" 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      @click.self="confirmModal.show = false"
-    >
-      <div class="bg-[#141414] border border-white/[0.1] rounded-2xl w-full max-w-sm p-5 space-y-4 shadow-2xl">
-        <div class="space-y-1.5">
-          <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 flex items-center justify-center text-lg mb-2">
-            🗑️
-          </div>
-          <h3 class="text-sm font-bold text-white">{{ confirmModal.title }}</h3>
-          <p class="text-xs text-neutral-400 leading-relaxed">{{ confirmModal.message }}</p>
-        </div>
-
-        <div class="flex gap-2 pt-2">
-          <button 
-            @click="confirmModal.show = false" 
-            class="flex-1 py-2 rounded-lg bg-white/[0.05] hover:bg-white/[0.1] text-xs text-neutral-300 font-medium transition-colors"
-          >
-            Batal
-          </button>
-          <button 
-            @click="executeConfirmedAction" 
-            :disabled="confirmModal.loading"
-            class="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-xs text-white font-semibold transition-colors disabled:opacity-50"
-          >
-            {{ confirmModal.loading ? 'Menghapus...' : 'Ya, Hapus' }}
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Header Admin -->
-    <div class="flex items-center justify-between border-b border-white/[0.08] pb-4">
-      <div>
-        <h1 class="text-xl font-bold text-white tracking-tight flex items-center gap-2">
-          <span>🛡️</span> Amru Portfolio Manager
-        </h1>
-        <p class="text-xs text-neutral-400">
-          Upload file gambar langsung atau masukkan link karya (Website, IG, TikTok, Pinterest).
-        </p>
-      </div>
-      <div v-if="isAuthenticated" class="flex items-center gap-3">
-        <span class="text-xs text-emerald-400 font-mono">● Sesi Aktif</span>
-        <button 
-          @click="logout" 
-          class="text-xs text-neutral-400 hover:text-red-400 px-3 py-1 rounded bg-white/[0.05] transition-colors"
-        >
-          Keluar
-        </button>
-      </div>
-    </div>
-
-    <!-- STATE 1: LOGIN -->
-    <div v-if="!isAuthenticated" class="max-w-sm mx-auto p-6 rounded-2xl bg-[#111111] border border-white/[0.08] space-y-4">
-      <div class="space-y-1">
-        <h2 class="text-sm font-semibold text-white">Login Admin</h2>
-        <p class="text-xs text-neutral-400">Masukkan kata sandi pribadi Anda:</p>
-      </div>
-      <input 
-        v-model="passwordInput"
-        type="password"
-        placeholder="Kata sandi..."
-        class="w-full px-3.5 py-2.5 rounded-lg bg-black border border-white/[0.1] text-white text-xs focus:outline-none focus:border-white transition-colors"
-        @keyup.enter="handleLogin"
-      />
-      <button 
-        @click="handleLogin"
-        class="w-full py-2.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors"
-      >
-        Buka Console
-      </button>
-      <p v-if="loginError" class="text-red-400 text-xs text-center">{{ loginError }}</p>
-    </div>
-
-    <!-- STATE 2: UNIVERSAL CRUD DASHBOARD DENGAN DIRECT FILE UPLOAD -->
-    <div v-else class="space-y-10">
-
-      <!-- ================= 1. FORM INPUT KARYA ================= -->
-      <section class="p-6 rounded-2xl bg-[#111111] border border-white/[0.08] space-y-5">
-        
-        <div class="flex items-center justify-between border-b border-white/[0.06] pb-3">
-          <h3 class="text-sm font-semibold text-white">
-            {{ editingItem ? 'Edit Karya Portofolio' : '+ Tambah Karya Baru' }}
-          </h3>
-          <span class="text-[11px] font-mono text-emerald-400">Direct Upload & URL Ready</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-          
-          <div class="space-y-1">
-            <label class="text-neutral-400 font-medium">Judul Karya *</label>
-            <input v-model="form.title" placeholder="Contoh: Redesign Kemasan Keripik Jamur" class="w-full p-2.5 rounded-lg bg-black border border-white/[0.1] text-white" />
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-neutral-400 font-medium">Platform *</label>
-            <select v-model="form.platform" class="w-full p-2.5 rounded-lg bg-black border border-white/[0.1] text-white">
-              <option value="instagram">Instagram</option>
-              <option value="tiktok">TikTok</option>
-              <option value="pinterest">Pinterest</option>
-              <option value="website">Website Project</option>
-            </select>
-          </div>
-
-          <div class="sm:col-span-2 space-y-1">
-            <label class="text-neutral-400 font-medium">Deskripsi Singkat</label>
-            <textarea v-model="form.description" rows="2" placeholder="Ceritakan konsep karya ini..." class="w-full p-2.5 rounded-lg bg-black border border-white/[0.1] text-white"></textarea>
-          </div>
-
-          <!-- OPSI GAMBAR: UPLOAD FILE ASLI DARI HP/LAPTOP ATAU PASTE URL -->
-          <div class="sm:col-span-2 p-4 rounded-xl bg-white/[0.02] border border-white/[0.08] space-y-3">
-            <label class="text-xs font-semibold text-white block">
-              📸 Gambar Preview Karya (Pilih salah satu cara)
-            </label>
-            
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <!-- Cara 1: Upload File Langsung (Paling Mudah untuk IG & TikTok!) -->
-              <div class="space-y-1.5">
-                <span class="text-[11px] text-neutral-400 font-medium">Cara A: Upload File Langsung (Foto Asli / Screenshot)</span>
-                <input 
-                  type="file" 
-                  accept="image/*"
-                  @change="handleFileUpload" 
-                  class="w-full text-xs text-neutral-400 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-white file:text-black hover:file:bg-neutral-200 cursor-pointer"
-                />
-                <span v-if="isUploading" class="text-[10px] text-[#FFE600] font-mono block">Mengunggah ke Supabase...</span>
-              </div>
-
-              <!-- Cara 2: Paste URL Gambar -->
-              <div class="space-y-1.5">
-                <span class="text-[11px] text-neutral-400 font-medium">Cara B: Atau Paste URL Gambar yang Sudah Ada</span>
-                <input v-model="form.preview_url" placeholder="https://..." class="w-full p-2 rounded-lg bg-black border border-white/[0.1] text-white text-[11px] font-mono" />
-              </div>
+          <div class="mt-10">
+            <label for="pw" class="label">Kata sandi</label>
+            <div class="relative mt-3">
+              <input
+                id="pw"
+                ref="pwEl"
+                v-model="password"
+                :type="showPw ? 'text' : 'password'"
+                class="field pr-28"
+                autocomplete="current-password"
+                :aria-invalid="!!loginError"
+                aria-describedby="pw-err"
+                @input="loginError = ''"
+              />
+              <button
+                type="button"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink/65 hover:text-ink"
+                @click="showPw = !showPw"
+              >
+                {{ showPw ? 'Sembunyikan' : 'Tampilkan' }}
+              </button>
             </div>
-
-            <!-- Preview Image Thumbnail Box -->
-            <div v-if="form.preview_url" class="pt-2 flex items-center gap-3">
-              <img :src="form.preview_url" class="w-14 h-16 rounded-lg object-cover border border-white/20" alt="Preview" />
-              <span class="text-[11px] text-emerald-400 font-mono">✓ Gambar preview siap ditampilkan</span>
-            </div>
+            <p id="pw-err" class="mt-3 min-h-[1.25rem] text-sm text-accent" role="alert">{{ loginError }}</p>
           </div>
 
-          <div class="space-y-1">
-            <label class="text-neutral-400 font-medium">Link Asli Karya (Live URL / Link Post IG/TikTok)</label>
-            <input v-model="form.live_url" placeholder="https://www.instagram.com/p/... atau website" class="w-full p-2.5 rounded-lg bg-black border border-white/[0.1] text-white" />
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-neutral-400 font-medium">Aspek Rasio Preview</label>
-            <select v-model="form.aspect_ratio" class="w-full p-2.5 rounded-lg bg-black border border-white/[0.1] text-white">
-              <option value="3:4">3:4 (Feed Foto IG & Pinterest: 1080x1440)</option>
-              <option value="9:16">9:16 (Vertikal Layar Penuh TikTok: 1080x1920)</option>
-              <option value="16:9">16:9 (Lanskap Screenshot Website: 1920x1080)</option>
-            </select>
-          </div>
-
-          <div class="sm:col-span-2 space-y-1">
-            <label class="text-neutral-400 font-medium">Tags (Pisahkan dengan koma)</label>
-            <input v-model="tagsInput" placeholder="Affinity by Canva, Desain Grafis, AI Tools" class="w-full p-2.5 rounded-lg bg-black border border-white/[0.1] text-white" />
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="flex gap-2 pt-2 border-t border-white/[0.06]">
-          <button 
-            @click="saveItem"
-            :disabled="isUploading"
-            class="px-6 py-2.5 rounded-lg bg-white text-black font-semibold text-xs hover:bg-neutral-200 transition-colors disabled:opacity-50"
-          >
-            {{ editingItem ? 'Perbarui Karya' : 'Simpan ke Portofolio' }}
+          <button type="submit" class="btn-ink mt-4 w-full justify-center">
+            <span>Buka konsol</span>
+            <Icon name="arrow-right" :size="16" />
           </button>
-          <button 
-            v-if="editingItem"
-            @click="cancelEdit"
-            class="px-4 py-2.5 rounded-lg bg-white/[0.05] text-neutral-300 text-xs hover:bg-white/[0.1]"
-          >
-            Batal
-          </button>
-        </div>
-
+        </form>
       </section>
 
-      <!-- ================= 2. DAFTAR KARYA DI DATABASE ================= -->
-      <section class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="text-sm font-semibold text-white">Daftar Karya Aktif ({{ itemList.length }})</h3>
-          <span class="text-xs text-neutral-500 font-mono">Real-time Supabase</span>
+      <!-- ================= DASHBOARD ================= -->
+      <section v-else key="dash">
+        <header class="flex flex-wrap items-end justify-between gap-6 border-b border-ink/10 pb-8">
+          <div>
+            <p class="label flex items-center gap-2">
+              <span class="h-1.5 w-1.5 rounded-full bg-accent" /> Sesi aktif
+            </p>
+            <h1 class="mt-3 font-display text-5xl leading-none tracking-[-0.04em] md:text-7xl">Kelola karya</h1>
+          </div>
+          <div class="flex items-center gap-6">
+            <button type="button" class="link-u inline-flex items-center gap-2 text-sm text-ink/75 hover:text-ink" @click="logout">
+              <Icon name="logout" :size="15" /> Keluar
+            </button>
+            <button type="button" class="btn-ink" @click="openNew">
+              <Icon name="plus" :size="16" />
+              <span>Karya baru</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- statistik -->
+        <dl class="rise-in mt-8 grid grid-cols-2 gap-px border border-ink/15 bg-ink/15 md:grid-cols-3 lg:grid-cols-6" style="--d: 60ms">
+          <div v-for="s in stats" :key="s.label" class="bg-paper p-5">
+            <dt class="label">{{ s.label }}</dt>
+            <dd class="mt-3 font-display text-4xl tracking-tight"><CountUp :value="s.value" :duration="900" /></dd>
+          </div>
+        </dl>
+
+        <!-- alat -->
+        <div class="mt-10 flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+          <div class="relative md:w-80">
+            <Icon name="search" :size="16" class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink/55" />
+            <input v-model="query" class="field !pl-10" placeholder="Cari judul atau kategori…" aria-label="Cari karya" />
+          </div>
+          <div class="flex flex-wrap gap-x-6 gap-y-2 text-sm" role="tablist" aria-label="Filter platform">
+            <button
+              v-for="t in filterTabs"
+              :key="t.key"
+              type="button"
+              role="tab"
+              :aria-selected="filter === t.key"
+              class="relative pb-1.5 transition-colors"
+              :class="filter === t.key ? 'text-ink' : 'text-ink/60 hover:text-ink'"
+              @click="filter = t.key"
+            >
+              {{ t.label }} <sup class="text-[10px] tabular-nums">{{ t.count }}</sup>
+              <span
+                class="absolute inset-x-0 bottom-0 h-px origin-left bg-accent transition-transform duration-300 ease-out"
+                :class="filter === t.key ? 'scale-x-100' : 'scale-x-0'"
+              />
+            </button>
+          </div>
         </div>
 
-        <div v-if="itemList.length === 0" class="text-xs text-neutral-500 py-8 text-center border border-dashed border-white/10 rounded-2xl">
-          Database portofolio masih kosong. Tambahkan karya pertama Anda di form atas!
-        </div>
+        <!-- daftar -->
+        <div class="mt-6">
+          <div v-if="loading" class="space-y-3" aria-busy="true">
+            <div v-for="n in 4" :key="n" class="skeleton h-24" />
+          </div>
 
-        <div 
-          v-for="item in itemList" 
-          :key="item.id"
-          class="p-4 rounded-xl bg-[#111111] border border-white/[0.06] flex items-center justify-between gap-4"
-        >
-          <div class="flex items-center gap-3">
-            <div class="w-14 h-16 rounded-lg overflow-hidden bg-black flex-shrink-0 border border-white/10">
-              <img :src="item.preview_url" class="w-full h-full object-cover" />
-            </div>
-            <div>
+          <div v-else-if="!list.length" class="border border-dashed border-ink/25 px-6 py-20 text-center">
+            <p class="font-display text-2xl">{{ items.length ? 'Tidak ada yang cocok.' : 'Belum ada karya.' }}</p>
+            <p class="mt-2 text-sm text-ink/65">
+              {{ items.length ? 'Coba kata kunci atau filter lain.' : 'Tambahkan karya pertama Anda untuk mulai mengisi portofolio.' }}
+            </p>
+            <button v-if="!items.length" type="button" class="btn-ink mt-6" @click="openNew">
+              <Icon name="plus" :size="16" /><span>Tambah karya pertama</span>
+            </button>
+          </div>
+
+          <TransitionGroup v-else name="row" tag="ul" class="divide-y divide-ink/10 border-y border-ink/10">
+            <li
+              v-for="(it, i) in list"
+              :key="it.id"
+              class="rise-in group grid grid-cols-[72px_minmax(0,1fr)_auto] items-center gap-4 py-4 transition-colors hover:bg-ink/[0.03] sm:gap-6 sm:px-3"
+              :style="{ '--d': Math.min(i * 40, 360) + 'ms' }"
+            >
+              <div class="relative aspect-[4/5] w-[72px] overflow-hidden bg-ink/[0.06]">
+                <img :src="it.preview_url" :alt="''" class="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" loading="lazy" />
+                <span v-if="(it.order_priority ?? 0) > 0" class="absolute left-1 top-1 grid h-5 w-5 place-items-center bg-accent text-paper" title="Disematkan">
+                  <Icon name="pin" :size="11" :stroke="2.2" />
+                </span>
+              </div>
+
+              <div class="min-w-0">
+                <p class="label">{{ platformLabel(it.platform) }} · {{ it.aspect_ratio || '3:4' }} · {{ formatMonth(it.created_at) }}</p>
+                <h3 class="mt-2 truncate font-display text-xl tracking-tight">{{ it.title }}</h3>
+                <p class="mt-1 flex items-center gap-4 text-[13px] text-ink/65">
+                  <span class="truncate">{{ it.category || 'Tanpa kategori' }}</span>
+                  <span class="inline-flex shrink-0 items-center gap-1.5 tabular-nums" :title="`${rx.totalOf(it.id)} reaksi`">
+                    <Icon name="heart" :size="13" /> {{ rx.totalOf(it.id) }}
+                  </span>
+                </p>
+              </div>
+
               <div class="flex items-center gap-2">
-                <span class="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/10 text-white">
-                  {{ item.platform }}
-                </span>
-                <span class="text-[9px] font-mono text-neutral-400">
-                  {{ item.aspect_ratio }}
-                </span>
+                <button
+                  type="button"
+                  class="btn-icon"
+                  :class="{ 'is-on': (it.order_priority ?? 0) > 0 }"
+                  :aria-pressed="(it.order_priority ?? 0) > 0"
+                  :aria-label="(it.order_priority ?? 0) > 0 ? 'Lepas sematan' : 'Sematkan di atas'"
+                  :title="(it.order_priority ?? 0) > 0 ? 'Lepas sematan' : 'Sematkan di atas'"
+                  @click="togglePin(it)"
+                >
+                  <Icon name="pin" :size="16" />
+                </button>
+                <button type="button" class="btn-icon" :aria-label="`Edit ${it.title}`" title="Edit" @click="openEdit(it)">
+                  <Icon name="pencil" :size="16" />
+                </button>
+                <button type="button" class="btn-icon is-danger" :aria-label="`Hapus ${it.title}`" title="Hapus" @click="remove(it)">
+                  <Icon name="trash" :size="16" />
+                </button>
               </div>
-              <h4 class="text-xs font-semibold text-white mt-1">{{ item.title }}</h4>
-              <p class="text-[11px] text-neutral-400 line-clamp-1">{{ item.description }}</p>
-            </div>
-          </div>
-
-          <div class="flex items-center gap-2">
-            <button @click="startEdit(item)" class="px-2.5 py-1 rounded bg-white/10 hover:bg-white/20 text-xs text-white">Edit</button>
-            <button @click="promptDelete(item)" class="px-2.5 py-1 rounded bg-red-500/10 hover:bg-red-500/20 text-xs text-red-400">Hapus</button>
-          </div>
+            </li>
+          </TransitionGroup>
         </div>
+
+        <p v-if="!rx.remote.value" class="mt-8 flex items-start gap-3 border border-ink/15 p-4 text-[13px] leading-relaxed text-ink/70">
+          <Icon name="info" :size="16" class="mt-0.5 shrink-0" />
+          <span>
+            Reaksi pengunjung belum tersimpan di database. Jalankan <code class="bg-ink/10 px-1">docs/REACTIONS_SETUP.sql</code>
+            di SQL Editor Supabase agar jumlahnya tercatat.
+          </span>
+        </p>
       </section>
+    </Transition>
 
-    </div>
-
+    <AdminItemForm :open="formOpen" :item="editing" @close="closeForm" @saved="onSaved" />
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
+<script setup lang="ts">
+import type { PortfolioItem } from '~/utils/portfolio'
 
-const passwordInput = ref('')
-const isAuthenticated = ref(false)
-const loginError = ref('')
-
-const itemList = ref([])
-const editingItem = ref(null)
-const tagsInput = ref('')
-const isUploading = ref(false)
-
-const form = ref({
-  title: '',
-  platform: 'instagram',
-  description: '',
-  preview_url: '',
-  live_url: '',
-  aspect_ratio: '3:4'
+useHead({
+  title: 'Konsol | by.amruu',
+  meta: [{ name: 'robots', content: 'noindex,nofollow' }]
 })
 
-// Toast State
-const toast = ref({ show: false, message: '', type: 'success' })
-const showToast = (message, type = 'success') => {
-  toast.value = { show: true, message, type }
-  setTimeout(() => { toast.value.show = false }, 3500)
-}
+const ADMIN_PASSWORD = 'amru2026'
+const SESSION_KEY = 'admin-session'
 
-// Confirmation Modal State
-const confirmModal = ref({ show: false, title: '', message: '', loading: false, action: null })
-const promptDelete = (item) => {
-  confirmModal.value = {
-    show: true,
-    title: `Hapus "${item.title}"?`,
-    message: 'Karya ini akan dihapus permanen dari portofolio.',
-    loading: false,
-    action: () => executeDelete(item.id)
-  }
-}
+const supabase = (useNuxtApp() as any).$supabase
+const toast = useToast()
+const { confirm } = useConfirm()
+const rx = useReactions()
 
-const executeConfirmedAction = async () => {
-  if (confirmModal.value.action) {
-    confirmModal.value.loading = true
-    await confirmModal.value.action()
-    confirmModal.value.loading = false
-    confirmModal.value.show = false
-  }
-}
+// --- sesi ---
+const authed = ref(false)
+const password = ref('')
+const showPw = ref(false)
+const loginError = ref('')
+const shaking = ref(false)
+const pwEl = ref<HTMLInputElement | null>(null)
 
-const { $supabase } = useNuxtApp()
-
-const handleLogin = () => {
-  if (passwordInput.value === 'amru2026') {
-    isAuthenticated.value = true
+function login() {
+  if (password.value === ADMIN_PASSWORD) {
+    authed.value = true
+    password.value = ''
     loginError.value = ''
-    passwordInput.value = ''
-    showToast('Login berhasil!')
-    fetchData()
+    try {
+      sessionStorage.setItem(SESSION_KEY, '1')
+    } catch {
+      /* abaikan */
+    }
+    toast.success('Selamat datang kembali.')
+    refresh()
   } else {
     loginError.value = 'Kata sandi salah.'
-    showToast('Kata sandi salah!', 'error')
+    shaking.value = true
+    setTimeout(() => (shaking.value = false), 550)
+    pwEl.value?.focus()
+    pwEl.value?.select()
   }
 }
 
-const logout = () => {
-  isAuthenticated.value = false
-}
-
-const fetchData = async () => {
-  if (!$supabase) return
-  const { data, error } = await $supabase
-    .from('portfolio_items')
-    .select('*')
-    .order('created_at', { ascending: false })
-
-  if (!error && data) {
-    itemList.value = data
-  }
-}
-
-// FITUR UPLOAD FILE LANGSUNG KE SUPABASE STORAGE
-const handleFileUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  isUploading.value = true
+function logout() {
+  authed.value = false
   try {
-    const ext = file.name.split('.').pop()
-    const fileName = `img_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`
-
-    // Upload langsung lewat Supabase client
-    const { data, error } = await $supabase.storage
-      .from('portfolio-media')
-      .upload(fileName, file, {
-        cacheControl: '3600',
-        upsert: true
-      })
-
-    if (error) throw error
-
-    // Ambil Public URL
-    const { data: publicData } = $supabase.storage
-      .from('portfolio-media')
-      .getPublicUrl(fileName)
-
-    form.value.preview_url = publicData.publicUrl
-    showToast('Gambar berhasil diupload ke Supabase Storage!')
-  } catch (err) {
-    console.error('Upload Error:', err)
-    showToast(`Upload gagal: ${err.message}`, 'error')
-  } finally {
-    isUploading.value = false
+    sessionStorage.removeItem(SESSION_KEY)
+  } catch {
+    /* abaikan */
   }
+  toast.info('Sesi diakhiri.')
 }
 
-// Save (Create / Update)
-const saveItem = async () => {
-  if (!form.value.title || !form.value.preview_url) {
-    showToast('Judul dan Gambar Preview wajib diisi!', 'error')
+// --- data ---
+const items = ref<PortfolioItem[]>([])
+const loading = ref(false)
+const query = ref('')
+const filter = ref('all')
+
+async function refresh() {
+  if (!supabase) {
+    toast.error('Database belum dikonfigurasi.')
     return
   }
+  loading.value = true
+  const [res] = await Promise.all([
+    supabase
+      .from('portfolio_items')
+      .select('*')
+      .order('order_priority', { ascending: false })
+      .order('created_at', { ascending: false }),
+    rx.load(true)
+  ])
+  loading.value = false
+  if (res.error) toast.error(res.error.message, { title: 'Gagal memuat karya' })
+  else items.value = (res.data ?? []) as PortfolioItem[]
+}
 
-  const tags = tagsInput.value ? tagsInput.value.split(',').map(s => s.trim()).filter(Boolean) : []
+const filterTabs = computed(() => [
+  { key: 'all', label: 'Semua', count: items.value.length },
+  ...PLATFORMS.map((p) => ({
+    key: p.key as string,
+    label: p.label as string,
+    count: items.value.filter((i) => i.platform === p.key).length
+  }))
+])
 
-  const payload = {
-    title: form.value.title,
-    platform: form.value.platform,
-    description: form.value.description,
-    preview_url: form.value.preview_url,
-    live_url: form.value.live_url,
-    aspect_ratio: form.value.aspect_ratio,
-    tech_stack: tags
+const stats = computed(() => [
+  { label: 'Total karya', value: items.value.length },
+  ...PLATFORMS.map((p) => ({ label: p.label as string, value: items.value.filter((i) => i.platform === p.key).length })),
+  { label: 'Reaksi', value: rx.grandTotal.value }
+])
+
+const list = computed(() => {
+  const q = query.value.trim().toLowerCase()
+  return items.value.filter((i) => {
+    if (filter.value !== 'all' && i.platform !== filter.value) return false
+    if (!q) return true
+    return `${i.title} ${i.category ?? ''} ${i.description ?? ''}`.toLowerCase().includes(q)
+  })
+})
+
+// --- form ---
+const formOpen = ref(false)
+const editing = ref<PortfolioItem | null>(null)
+
+function openNew() {
+  editing.value = null
+  formOpen.value = true
+}
+function openEdit(it: PortfolioItem) {
+  editing.value = it
+  formOpen.value = true
+}
+function closeForm() {
+  formOpen.value = false
+}
+async function onSaved(mode: 'create' | 'update') {
+  formOpen.value = false
+  toast.success(mode === 'create' ? 'Karya baru sudah terbit di situs.' : 'Perubahan tersimpan.')
+  await refresh()
+}
+
+// --- sematan ---
+async function togglePin(it: PortfolioItem) {
+  const pinned = (it.order_priority ?? 0) > 0
+  const next = pinned ? 0 : 10
+  const prev = it.order_priority ?? 0
+  it.order_priority = next
+  const { error } = await supabase.from('portfolio_items').update({ order_priority: next }).eq('id', it.id)
+  if (error) {
+    it.order_priority = prev
+    toast.error(error.message, { title: 'Gagal mengubah sematan' })
+    return
   }
+  toast.success(pinned ? 'Sematan dilepas.' : 'Karya disematkan di urutan teratas.')
+  await refresh()
+}
 
-  if (editingItem.value) {
-    const { error } = await $supabase.from('portfolio_items').update(payload).eq('id', editingItem.value.id)
-    if (error) showToast(error.message, 'error')
-    else { showToast('Karya berhasil diperbarui!'); cancelEdit(); }
-  } else {
-    const { error } = await $supabase.from('portfolio_items').insert([payload])
-    if (error) showToast(error.message, 'error')
-    else { showToast('Karya berhasil ditambahkan!'); resetForm(); }
+// --- hapus (dengan konfirmasi dan opsi urungkan) ---
+async function remove(it: PortfolioItem) {
+  const ok = await confirm({
+    title: `Hapus “${it.title}”?`,
+    message: 'Karya akan hilang dari situs. Anda masih bisa mengurungkannya sesaat setelah dihapus.',
+    confirmText: 'Hapus karya',
+    tone: 'danger'
+  })
+  if (!ok) return
+
+  const { error } = await supabase.from('portfolio_items').delete().eq('id', it.id)
+  if (error) {
+    toast.error(error.message, { title: 'Gagal menghapus' })
+    return
   }
-
-  await fetchData()
+  items.value = items.value.filter((x) => x.id !== it.id)
+  toast.success(`“${it.title}” dihapus.`, {
+    duration: 9000,
+    action: { label: 'Urungkan', onClick: () => restore(it) }
+  })
 }
 
-const startEdit = (item) => {
-  editingItem.value = item
-  form.value = { ...item }
-  tagsInput.value = (item.tech_stack || []).join(', ')
-}
-
-const cancelEdit = () => {
-  editingItem.value = null
-  resetForm()
-}
-
-const resetForm = () => {
-  form.value = { title: '', platform: 'instagram', description: '', preview_url: '', live_url: '', aspect_ratio: '3:4' }
-  tagsInput.value = ''
-}
-
-const executeDelete = async (id) => {
-  const { error } = await $supabase.from('portfolio_items').delete().eq('id', id)
-  if (error) showToast(error.message, 'error')
-  else { showToast('Karya berhasil dihapus!'); await fetchData(); }
+async function restore(it: PortfolioItem) {
+  const { error } = await supabase.from('portfolio_items').insert([it])
+  if (error) toast.error(error.message, { title: 'Gagal mengurungkan' })
+  else {
+    toast.success('Karya dikembalikan.')
+    await refresh()
+  }
 }
 
 onMounted(() => {
-  if (isAuthenticated.value) fetchData()
+  try {
+    if (sessionStorage.getItem(SESSION_KEY) === '1') {
+      authed.value = true
+      refresh()
+      return
+    }
+  } catch {
+    /* abaikan */
+  }
+  pwEl.value?.focus()
 })
 </script>
-
-<style scoped>
-.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
-.toast-enter-from { opacity: 0; transform: translateY(-20px); }
-.toast-leave-to { opacity: 0; transform: translateY(-10px); }
-</style>

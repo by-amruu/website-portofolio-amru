@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
     })
   }
 
-  const cleanUrl = targetUrl.split('?')[0].trim()
+  const cleanUrl = (targetUrl.split('?')[0] ?? '').trim()
 
   // 1. Deteksi Platform
   let platform = 'website'
@@ -49,9 +49,9 @@ export default defineEventHandler(async (event) => {
     const descMatch = html.match(/<meta[^>]*property=["']og:description["'][^>]*content=["']([^"']+)["']/i)
       || html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']+)["']/i)
 
-    const title = titleMatch ? titleMatch[1].replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec)) : ''
-    const imageUrl = imageMatch ? imageMatch[1] : ''
-    const description = descMatch ? descMatch[1] : ''
+    const title = titleMatch && titleMatch[1] ? titleMatch[1].replace(/&#(\d+);/g, (_, dec) => String.fromCharCode(dec)) : ''
+    const imageUrl = imageMatch && imageMatch[1] ? imageMatch[1] : ''
+    const description = descMatch && descMatch[1] ? descMatch[1] : ''
 
     // 4. Deteksi Default Aspect Ratio
     let aspectRatio = '16:9'

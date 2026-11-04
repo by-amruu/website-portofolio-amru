@@ -1,300 +1,257 @@
 <template>
-  <div 
-    class="relative min-h-screen antialiased selection:bg-black selection:text-white transition-colors duration-1000 overflow-hidden"
-    :class="isDaytime ? 'theme-light text-neutral-900' : 'theme-dark text-[#FAFAFA]'"
-    :style="{ backgroundColor: currentBgColor }"
-    @mousemove="handleMouseMove"
-  >
-    <!-- ============================================================= -->
-    <!-- DYNAMIC REAL-TIME DAY/NIGHT & MASSIVE KINETIC BACKGROUND       -->
-    <!-- ============================================================= -->
-    <div class="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-      
-      <!-- 1. Real-Time Atmospheric Sky Gradients -->
-      <div 
-        class="absolute inset-0 transition-opacity duration-1000"
-        :style="{ background: currentSkyGradient }"
-      ></div>
-
-      <!-- 2. Massive Atmospheric Aurora Glowing Waves (Fluid & Floating) -->
-      <div 
-        class="absolute -top-36 -left-32 w-[720px] h-[720px] rounded-full blur-[85px] animate-aurora-1 transition-all duration-1000"
-        :style="{ background: orbColor1, opacity: isDaytime ? 0.35 : 0.45 }"
-      ></div>
-      <div 
-        class="absolute top-1/4 -right-36 w-[680px] h-[680px] rounded-full blur-[95px] animate-aurora-2 transition-all duration-1000"
-        :style="{ background: orbColor2, opacity: isDaytime ? 0.30 : 0.40 }"
-      ></div>
-      <div 
-        class="absolute -bottom-36 left-1/4 w-[820px] h-[820px] rounded-full blur-[105px] animate-aurora-3 transition-all duration-1000"
-        :style="{ background: orbColor3, opacity: isDaytime ? 0.25 : 0.35 }"
-      ></div>
-
-      <!-- 3. Top Ambient Horizon Glow -->
-      <div 
-        class="absolute -top-40 left-1/2 -translate-x-1/2 w-[1100px] h-[450px] rounded-full transition-opacity duration-1000"
-        :style="{ 
-          background: isDaytime 
-            ? 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.9) 0%, rgba(240, 249, 255, 0.4) 50%, transparent 100%)' 
-            : 'radial-gradient(50% 50% at 50% 50%, rgba(255, 255, 255, 0.08) 0%, transparent 100%)',
-          opacity: 0.7 
-        }"
-      ></div>
-
-      <!-- 4. Interactive Cursor Spotlight (Desktop Only) -->
-      <div 
-        ref="spotlightRef"
-        class="hidden md:block absolute inset-0 transition-opacity duration-300"
-        :style="{
-          background: isDaytime
-            ? 'radial-gradient(650px circle at var(--mouse-x, 50vw) var(--mouse-y, 30vh), rgba(59, 130, 246, 0.08), transparent 50%)'
-            : 'radial-gradient(650px circle at var(--mouse-x, 50vw) var(--mouse-y, 30vh), rgba(255, 255, 255, 0.045), transparent 50%)'
-        }"
-      ></div>
-
-      <!-- 5. Floating Firefly & Starlight Particle Elements -->
-      <div class="absolute inset-0">
-        <div class="absolute top-[16%] left-[20%] w-2 h-2 rounded-full animate-particle-1" :class="isDaytime ? 'bg-sky-400 shadow-[0_0_10px_#38bdf8]' : 'bg-cyan-300 shadow-[0_0_10px_#67e8f9]'"></div>
-        <div class="absolute top-[32%] left-[80%] w-2.5 h-2.5 rounded-full animate-particle-2" :class="isDaytime ? 'bg-amber-400 shadow-[0_0_12px_#f59e0b]' : 'bg-indigo-300 shadow-[0_0_12px_#a5b4fc]'"></div>
-        <div class="absolute top-[62%] left-[14%] w-1.5 h-1.5 rounded-full animate-particle-3" :class="isDaytime ? 'bg-rose-400 shadow-[0_0_10px_#fb7185]' : 'bg-amber-200 shadow-[0_0_10px_#fde68a]'"></div>
-        <div class="absolute top-[78%] left-[70%] w-2 h-2 rounded-full animate-particle-4" :class="isDaytime ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' : 'bg-emerald-300 shadow-[0_0_10px_#6ee7b7]'"></div>
-        <div class="absolute top-[24%] left-[58%] w-1.5 h-1.5 rounded-full animate-particle-5" :class="isDaytime ? 'bg-indigo-500 shadow-[0_0_8px_#6366f1]' : 'bg-white shadow-[0_0_8px_#ffffff]'"></div>
-      </div>
-
-      <!-- 6. Architectural Grid with Dynamic Beams -->
-      <div class="absolute inset-0 bg-architectural-grid">
-        <!-- 3 Vertical Laser Beams -->
-        <div class="absolute left-[16%] top-0 w-[1.5px] h-60 bg-gradient-to-b from-transparent via-cyan-400 to-transparent animate-laser-v-1"></div>
-        <div class="absolute left-[50%] top-0 w-[1px] h-72 bg-gradient-to-b from-transparent via-white/80 to-transparent animate-laser-v-2"></div>
-        <div class="absolute left-[84%] top-0 w-[1.5px] h-64 bg-gradient-to-b from-transparent via-indigo-400 to-transparent animate-laser-v-3"></div>
-        
-        <!-- 2 Horizontal Stream Beams -->
-        <div class="absolute top-[200px] left-0 h-[1.5px] w-72 bg-gradient-to-r from-transparent via-cyan-400/80 to-transparent animate-laser-h-1"></div>
-        <div class="absolute top-[580px] left-0 h-[1px] w-96 bg-gradient-to-r from-transparent via-purple-400/80 to-transparent animate-laser-h-2"></div>
-      </div>
-
-    </div>
-
-    <!-- ============================================================= -->
-    <!-- TOP FLOATING NAVBAR                                           -->
-    <!-- ============================================================= -->
-    <header 
-      class="sticky top-0 z-40 backdrop-blur-xl border-b transition-all duration-500"
-      :class="isDaytime ? 'bg-white/80 border-black/[0.08]' : 'bg-[#050505]/80 border-white/[0.08]'"
+  <div class="relative min-h-screen">
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[70] focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:text-paper"
     >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        
-        <!-- Brand Link -->
-        <NuxtLink to="/" class="flex items-center gap-3 group">
-          <div 
-            class="w-8 h-8 rounded-full overflow-hidden border transition-all duration-300 group-hover:scale-105"
-            :class="isDaytime ? 'border-black/20 bg-neutral-100 group-hover:border-black' : 'border-white/20 bg-black group-hover:border-white'"
-          >
-            <img src="/favicon.png" alt="Amru Icon" class="w-full h-full object-cover" />
-          </div>
-          <span 
-            class="font-semibold text-sm tracking-tight transition-colors"
-            :class="isDaytime ? 'text-neutral-900 group-hover:text-black' : 'text-neutral-200 group-hover:text-white'"
-          >
-            by.amruu
-          </span>
-        </NuxtLink>
+      Lewati ke konten
+    </a>
 
-        <!-- Time & Day/Night Indicator Badge (Real-Time Synchronized) -->
-        <div 
-          class="hidden sm:inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono border transition-all duration-500"
-          :class="isDaytime ? 'bg-black/[0.04] border-black/[0.08] text-neutral-700' : 'bg-white/[0.05] border-white/[0.1] text-neutral-300'"
-        >
-          <span class="w-2 h-2 rounded-full animate-ping" :class="timeStatusDot"></span>
-          <span>{{ isDaytime ? '☀️ Terang' : '🌙 Gelap' }} • {{ timeStatusLabel }} ({{ localClock }})</span>
+    <ClientOnly><FieldBackground /></ClientOnly>
+    <div class="grain" aria-hidden="true" />
+
+    <!-- progres scroll -->
+    <div
+      class="pointer-events-none fixed inset-x-0 top-0 z-[45] h-[2px] origin-left bg-accent"
+      :style="{ transform: `scaleX(${progress})` }"
+      aria-hidden="true"
+    />
+
+    <!-- NAVBAR: sembunyi saat scroll turun, muncul saat scroll naik -->
+    <header
+      class="fixed inset-x-0 top-0 z-40 transition-transform duration-500 ease-out"
+      :class="hidden ? '-translate-y-full' : 'translate-y-0'"
+      @focusin="hidden = false"
+    >
+      <div
+        class="border-b transition-[background-color,border-color,backdrop-filter] duration-300"
+        :class="scrolled ? 'border-ink/10 bg-paper/75 backdrop-blur-xl' : 'border-transparent'"
+      >
+        <div class="mx-auto flex h-16 max-w-[1440px] items-center justify-between px-5 sm:px-8">
+          <NuxtLink to="/" class="group flex items-center gap-3" aria-label="by.amruu, ke beranda">
+            <img
+              src="/favicon.png"
+              alt=""
+              width="28"
+              height="28"
+              class="h-7 w-7 rounded-full object-cover ring-1 ring-ink/25 transition-transform duration-700 ease-out group-hover:rotate-[360deg]"
+            />
+            <span class="font-display text-[15px] font-medium tracking-tight">by.amruu</span>
+          </NuxtLink>
+
+          <nav class="flex items-center gap-6 sm:gap-8" aria-label="Navigasi utama">
+            <template v-if="!isAdmin">
+              <a
+                v-for="l in links"
+                :key="l.id"
+                :href="`#${l.id}`"
+                class="relative py-2 text-[13px] transition-colors duration-200"
+                :class="activeSection === l.id ? 'text-ink' : 'text-ink/65 hover:text-ink'"
+                @click.prevent="goTo(l.id)"
+              >
+                {{ l.label }}
+                <span
+                  class="absolute inset-x-0 -bottom-px h-px origin-left bg-accent transition-transform duration-500 ease-out"
+                  :class="activeSection === l.id ? 'scale-x-100' : 'scale-x-0'"
+                />
+              </a>
+            </template>
+            <template v-else>
+              <span class="label hidden sm:inline">Konsol admin</span>
+              <NuxtLink to="/" class="link-u inline-flex items-center gap-1.5 text-[13px] text-ink/75 hover:text-ink">
+                Lihat situs
+                <Icon name="arrow-up-right" :size="14" />
+              </NuxtLink>
+            </template>
+
+            <button
+              type="button"
+              class="group flex items-center gap-2.5 py-2 text-[13px] text-ink/70 transition-colors hover:text-ink"
+              :aria-label="themeLabel"
+              :title="themeLabel"
+              @click="onCycleTheme"
+            >
+              <span class="tabular-nums">{{ clock }}</span>
+              <span class="hidden text-ink/60 md:inline">{{ phase }}</span>
+              <span class="grid h-8 w-8 place-items-center border border-ink/20 transition-colors group-hover:border-ink">
+                <Transition name="spin" mode="out-in">
+                  <Icon :key="modeIcon" :name="modeIcon" :size="15" />
+                </Transition>
+              </span>
+            </button>
+          </nav>
         </div>
-
-        <!-- Clean Navigation Links -->
-        <nav 
-          class="flex items-center gap-6 text-xs font-medium"
-          :class="isDaytime ? 'text-neutral-600' : 'text-neutral-400'"
-        >
-          <button 
-            @click="scrollToSection('portfolio')" 
-            class="transition-colors cursor-pointer"
-            :class="isDaytime ? 'hover:text-black' : 'hover:text-white'"
-          >
-            Portofolio
-          </button>
-          <button 
-            @click="scrollToSection('contact')" 
-            class="transition-colors cursor-pointer"
-            :class="isDaytime ? 'hover:text-black' : 'hover:text-white'"
-          >
-            Kontak
-          </button>
-          <a 
-            href="https://github.com/by-amruu" 
-            target="_blank" 
-            class="px-3.5 py-1.5 rounded-full transition-all duration-300 transform hover:scale-105"
-            :class="isDaytime ? 'bg-black text-white hover:bg-neutral-800' : 'bg-white/10 text-white hover:bg-white hover:text-black'"
-          >
-            GitHub ↗
-          </a>
-        </nav>
       </div>
     </header>
 
-    <!-- ============================================================= -->
-    <!-- MAIN CONTAINER                                                -->
-    <!-- ============================================================= -->
-    <main class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14">
-      <NuxtPage :is-daytime="isDaytime" />
+    <main id="main" class="relative z-10 min-h-screen">
+      <NuxtPage />
     </main>
 
-    <!-- ============================================================= -->
-    <!-- FOOTER                                                        -->
-    <!-- ============================================================= -->
-    <footer 
-      class="relative z-10 border-t py-8 text-center text-xs transition-colors duration-500"
-      :class="isDaytime ? 'border-black/[0.08] text-neutral-500' : 'border-white/[0.06] text-neutral-400'"
-    >
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div class="flex items-center gap-2">
-          <img src="/favicon.png" alt="Amru Logo" class="w-4 h-4 rounded-full" />
-          <p>© 2026 by.amruu. Seluruh hak cipta dilindungi.</p>
+    <!-- FOOTER -->
+    <footer class="relative z-10 border-t border-ink/10">
+      <div class="mx-auto max-w-[1440px] px-5 pb-8 pt-10 sm:px-8">
+        <div
+          v-if="!isAdmin"
+          class="reveal select-none overflow-hidden font-display text-[clamp(3.5rem,15.5vw,14rem)] font-medium leading-[0.82] tracking-[-0.05em]"
+          data-reveal="fade"
+          v-reveal
+          aria-hidden="true"
+        >
+          <span
+            v-for="(c, i) in wordmark"
+            :key="i"
+            class="inline-block transition-[transform,color] duration-500 ease-out hover:-translate-y-3 hover:text-accent"
+          >
+            {{ c }}
+          </span>
         </div>
-        <p class="font-mono text-[11px]" :class="isDaytime ? 'text-neutral-400' : 'text-neutral-500'">
-          Bespoke Web & Visual Systems
-        </p>
+
+        <div class="mt-8 flex flex-col gap-4 text-[13px] text-ink/65 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {{ year }} by.amruu. Dibuat sendiri, dari Kebumen.</p>
+          <button type="button" class="link-u inline-flex items-center gap-2 self-start sm:self-auto" @click="toTop">
+            Kembali ke atas
+            <Icon name="arrow-up" :size="14" />
+          </button>
+        </div>
       </div>
     </footer>
 
+    <!-- tombol kembali ke atas -->
+    <Transition name="up">
+      <button
+        v-if="showTop"
+        type="button"
+        class="btn-icon !h-11 !w-11 fixed bottom-5 left-5 z-30 !bg-paper"
+        aria-label="Kembali ke atas"
+        @click="toTop"
+      >
+        <Icon name="arrow-up" :size="18" />
+      </button>
+    </Transition>
+
+    <ClientOnly>
+      <CursorLabel />
+      <ToastHost />
+      <ConfirmHost />
+    </ClientOnly>
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
-
-const router = useRouter()
+<script setup lang="ts">
 const route = useRoute()
-const spotlightRef = ref(null)
+const router = useRouter()
+const toast = useToast()
+const { mode, theme, clock, phase, init, apply, cycle } = useTheme()
 
-// Zero-overhead cursor spotlight update via native CSS variables
-const handleMouseMove = (e) => {
-  if (!spotlightRef.value) return
-  spotlightRef.value.style.setProperty('--mouse-x', `${e.clientX}px`)
-  spotlightRef.value.style.setProperty('--mouse-y', `${e.clientY}px`)
+const links = [
+  { id: 'karya', label: 'Karya' },
+  { id: 'kontak', label: 'Kontak' }
+]
+const wordmark = 'by.amruu'.split('')
+const year = new Date().getFullYear()
+
+const isAdmin = computed(() => route.path.startsWith('/aku-raja'))
+
+useHead({
+  meta: [{ name: 'theme-color', content: computed(() => (theme.value === 'light' ? '#f6f5f1' : '#0b0b0c')) }]
+})
+
+// --- tema ---
+const modeIcon = computed(() => (mode.value === 'auto' ? 'auto' : mode.value === 'light' ? 'sun' : 'moon'))
+const themeLabel = computed(() => {
+  if (mode.value === 'auto') return `Tema otomatis (sekarang ${theme.value === 'light' ? 'terang' : 'gelap'}). Klik untuk mengganti.`
+  return `Tema ${mode.value === 'light' ? 'terang' : 'gelap'} dikunci. Klik untuk mengganti.`
+})
+watch(theme, apply)
+
+function onCycleTheme() {
+  const next = cycle()
+  if (next === 'auto') toast.info('Mengikuti waktu: terang 05.30–18.00, gelap setelah magrib.', { title: 'Tema otomatis' })
+  else if (next === 'light') toast.info('Tampilan terang dikunci.', { title: 'Tema terang' })
+  else toast.info('Tampilan gelap dikunci.', { title: 'Tema gelap' })
 }
 
-// -------------------------------------------------------------
-// REAL-TIME DAY/NIGHT & ATMOSPHERIC ENGINE
-// Siang (Pagi s.d Sore): 05:30 - 17:59 -> Mode Terang Putih Elegan
-// Malam (Magrib s.d Subuh): 18:00 - 05:29 -> Mode Gelap Luxury Minimalist
-// -------------------------------------------------------------
-const currentHour = ref(new Date().getHours())
-const currentMinute = ref(new Date().getMinutes())
-let clockTimer = null
+// --- scroll ---
+const progress = ref(0)
+const scrolled = ref(false)
+const hidden = ref(false)
+const showTop = ref(false)
+const activeSection = ref('')
+let lastY = 0
+let ticking = false
 
-const updateClock = () => {
-  const now = new Date()
-  currentHour.value = now.getHours()
-  currentMinute.value = now.getMinutes()
+function measure() {
+  const y = window.scrollY
+  const max = document.documentElement.scrollHeight - window.innerHeight
+  progress.value = max > 0 ? Math.min(y / max, 1) : 0
+  scrolled.value = y > 8
+  showTop.value = y > 900
+
+  const delta = y - lastY
+  if (y < 120) hidden.value = false
+  else if (delta > 8) hidden.value = true
+  else if (delta < -8) hidden.value = false
+  lastY = y
+
+  if (route.path === '/') {
+    let cur = ''
+    for (const l of links) {
+      const el = document.getElementById(l.id)
+      if (el && el.getBoundingClientRect().top < window.innerHeight * 0.4) cur = l.id
+    }
+    activeSection.value = cur
+  } else {
+    activeSection.value = ''
+  }
 }
 
-const localClock = computed(() => {
-  const h = String(currentHour.value).padStart(2, '0')
-  const m = String(currentMinute.value).padStart(2, '0')
-  return `${h}:${m}`
-})
+function onScroll() {
+  if (ticking) return
+  ticking = true
+  requestAnimationFrame(() => {
+    ticking = false
+    measure()
+  })
+}
 
-// Apakah sekarang jam pagi - sore (05:30 s.d 17:59)?
-const isDaytime = computed(() => {
-  const totalMinutes = currentHour.value * 60 + currentMinute.value
-  const morningStart = 5 * 60 + 30 // 05:30
-  const magribStart = 18 * 60     // 18:00
-  return totalMinutes >= morningStart && totalMinutes < magribStart
-})
+const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-// Fase detail untuk pewarnaan langit
-const timeStatusLabel = computed(() => {
-  const h = currentHour.value
-  if (h >= 5 && h < 11) return 'Pagi Cerah'
-  if (h >= 11 && h < 15) return 'Siang Benderang'
-  if (h >= 15 && h < 18) return 'Sore Santai'
-  if (h >= 18 && h < 20) return 'Magrib & Senja'
-  return 'Malam Tenang'
-})
+function scrollToId(id: string) {
+  document.getElementById(id)?.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' })
+}
 
-const timeStatusDot = computed(() => {
-  return isDaytime.value ? 'bg-amber-500 shadow-[0_0_8px_#f59e0b]' : 'bg-indigo-400 shadow-[0_0_8px_#818cf8]'
-})
-
-// Base background color
-const currentBgColor = computed(() => {
-  if (isDaytime.value) {
-    const h = currentHour.value
-    if (h >= 15 && h < 18) return '#FAF8F5' // warm golden daylight
-    return '#F8FAFC' // crisp clean white slate daylight
-  } else {
-    const h = currentHour.value
-    if (h >= 18 && h < 20) return '#0d0914' // sunset twilight velvet
-    return '#050508' // midnight clean obsidian
-  }
-})
-
-// Atmospheric Sky Radial Gradients
-const currentSkyGradient = computed(() => {
-  if (isDaytime.value) {
-    return 'radial-gradient(ellipse at 50% -10%, rgba(56, 189, 248, 0.20) 0%, rgba(240, 249, 255, 0.6) 40%, transparent 80%)'
-  } else {
-    return 'radial-gradient(ellipse at 50% -10%, rgba(99, 102, 241, 0.16) 0%, rgba(59, 130, 246, 0.05) 50%, transparent 80%)'
-  }
-})
-
-// Aurora Orbs Colors (Day vs Night)
-const orbColor1 = computed(() => {
-  if (isDaytime.value) {
-    return 'radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, transparent 70%)'
-  }
-  return 'radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%)'
-})
-
-const orbColor2 = computed(() => {
-  if (isDaytime.value) {
-    return 'radial-gradient(circle, rgba(251, 146, 60, 0.30) 0%, transparent 70%)'
-  }
-  return 'radial-gradient(circle, rgba(168, 85, 247, 0.22) 0%, transparent 70%)'
-})
-
-const orbColor3 = computed(() => {
-  if (isDaytime.value) {
-    return 'radial-gradient(circle, rgba(16, 185, 129, 0.25) 0%, transparent 70%)'
-  }
-  return 'radial-gradient(circle, rgba(56, 189, 248, 0.20) 0%, transparent 70%)'
-})
-
-onMounted(() => {
-  updateClock()
-  clockTimer = setInterval(updateClock, 30000)
-})
-
-onUnmounted(() => {
-  if (clockTimer) clearInterval(clockTimer)
-})
-
-const scrollToSection = (id) => {
+async function goTo(id: string) {
   if (route.path !== '/') {
-    router.push('/').then(() => {
-      setTimeout(() => {
-        const el = document.getElementById(id)
-        if (el) el.scrollIntoView({ behavior: 'smooth' })
-      }, 100)
-    })
+    await router.push('/')
+    // tunggu transisi halaman selesai sebelum menggulir
+    setTimeout(() => scrollToId(id), 700)
     return
   }
-
-  const el = document.getElementById(id)
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth' })
-    if (window.history.replaceState) {
-      window.history.replaceState(null, '', window.location.pathname)
-    }
-  }
+  scrollToId(id)
 }
+
+function toTop() {
+  window.scrollTo({ top: 0, behavior: reducedMotion() ? 'auto' : 'smooth' })
+}
+
+watch(
+  () => route.path,
+  () => {
+    hidden.value = false
+    nextTick(measure)
+  }
+)
+
+onMounted(() => {
+  init()
+  measure()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('resize', onScroll, { passive: true })
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('scroll', onScroll)
+  window.removeEventListener('resize', onScroll)
+})
 </script>

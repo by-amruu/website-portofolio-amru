@@ -1,308 +1,319 @@
 <template>
-  <div class="space-y-16">
+  <div>
+    <!-- ================= HERO ================= -->
+    <section class="mx-auto max-w-[1440px] px-5 pb-20 pt-32 sm:px-8 md:pb-28 md:pt-44">
+      <div class="grid gap-14 lg:grid-cols-12 lg:gap-10">
+        <div class="lg:col-span-8">
+          <p class="label reveal flex items-center gap-3" data-reveal="fade" v-reveal>
+            <span class="relative flex h-2 w-2">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent opacity-60" />
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-accent" />
+            </span>
+            Terbuka untuk project &amp; kolaborasi
+          </p>
 
-    <!-- ============================================================= -->
-    <!-- 1. HERO SECTION                                               -->
-    <!-- ============================================================= -->
-    <section class="space-y-5">
-      <!-- Status Badge -->
-      <div 
-        class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs border transition-all duration-300 animate-float-gentle"
-        :class="isDaytime 
-          ? 'bg-black/[0.04] border-black/[0.08] text-neutral-800' 
-          : 'bg-white/[0.04] border-white/[0.08] text-neutral-300'"
-      >
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span>Tersedia untuk Project & Kolaborasi</span>
-      </div>
+          <h1
+            class="mt-8 font-display font-medium leading-[0.84] tracking-[-0.05em] text-[clamp(5.5rem,19vw,16rem)]"
+            aria-label="Amru"
+          >
+            <span class="mask-line"><span style="--d: 60ms">Amru<span class="text-accent">.</span></span></span>
+          </h1>
 
-      <div class="space-y-3">
-        <h1 
-          class="text-4xl md:text-6xl font-bold tracking-tight leading-tight transition-colors duration-500"
-          :class="isDaytime ? 'text-black' : 'text-white'"
-        >
-          Amru<span class="text-neutral-500">.</span>
-        </h1>
-        <p 
-          class="text-sm md:text-base leading-relaxed font-normal max-w-2xl transition-colors duration-500"
-          :class="isDaytime ? 'text-neutral-600' : 'text-neutral-300'"
-        >
-          Koleksi karya website, eksplorasi desain kemasan, edukasi grafis, dan proyek kreatif lintas platform (Web, Instagram, TikTok & Pinterest).
-        </p>
-      </div>
+          <div class="mt-8 font-display text-[clamp(1.6rem,3.6vw,3rem)] leading-[1.08] tracking-tight">
+            <span class="mask-line"><span style="--d: 260ms">Desainer grafis &amp; pembuat web</span></span>
+            <span class="mask-line"><span class="text-ink/45" style="--d: 360ms">dari Kebumen, Jawa Tengah.</span></span>
+          </div>
 
-      <!-- Quick Platform Filter Pills -->
-      <div class="flex flex-wrap items-center gap-2 pt-2 text-xs">
-        <button 
-          @click="activeFilter = 'all'"
-          class="px-4 py-1.5 rounded-full border transition-all duration-300 cursor-pointer transform hover:scale-105"
-          :class="getFilterButtonClass('all')"
-        >
-          Semua ({{ items.length }})
-        </button>
-        <button 
-          v-for="plat in availablePlatforms" 
-          :key="plat"
-          @click="activeFilter = plat"
-          class="px-4 py-1.5 rounded-full border capitalize transition-all duration-300 cursor-pointer transform hover:scale-105"
-          :class="getFilterButtonClass(plat)"
-        >
-          {{ plat }} ({{ items.filter(i => i.platform === plat).length }})
-        </button>
+          <p class="reveal mt-8 max-w-xl text-[15px] leading-relaxed text-ink/70" v-reveal="450">
+            Kumpulan karya yang saya buat sendiri: desain kemasan, konten edukasi grafis, poster, dan eksperimen web.
+            Klik karya mana pun untuk melihatnya lebih dekat.
+          </p>
+
+          <div class="reveal mt-10 flex flex-wrap items-center gap-x-8 gap-y-4" v-reveal="560">
+            <button type="button" class="btn-ink" @click="scrollTo('karya')">
+              <span>Lihat karya</span>
+              <Icon name="arrow-down" :size="16" />
+            </button>
+            <button type="button" class="link-u inline-flex items-center gap-2 text-sm" @click="scrollTo('kontak')">
+              Hubungi saya
+              <Icon name="arrow-up-right" :size="14" />
+            </button>
+          </div>
+        </div>
+
+        <aside class="reveal space-y-10 lg:col-span-4 lg:pt-10" v-reveal="300">
+          <SunPath />
+
+          <dl class="divide-y divide-ink/10 border-y border-ink/10">
+            <div v-for="s in stats" :key="s.label" class="flex items-baseline justify-between py-3.5">
+              <dt class="text-sm text-ink/70">{{ s.label }}</dt>
+              <dd class="font-display text-3xl tracking-tight"><CountUp :value="s.value" /></dd>
+            </div>
+            <div v-if="!stats.length" class="py-3.5 text-sm text-ink/60">Menghitung karya…</div>
+          </dl>
+        </aside>
       </div>
     </section>
 
-    <!-- ============================================================= -->
-    <!-- 2. UNIVERSAL BENTO GRID (RESPONSIF & ANIMATED)                -->
-    <!-- ============================================================= -->
-    <section id="portfolio" class="space-y-6">
-      
-      <!-- Empty State -->
-      <div v-if="filteredItems.length === 0" class="premium-card p-12 rounded-2xl text-center space-y-3">
-        <p 
-          class="text-sm font-medium transition-colors"
-          :class="isDaytime ? 'text-neutral-700' : 'text-neutral-300'"
-        >
-          Belum ada karya yang ditampilkan di kategori ini.
-        </p>
-        <p 
-          class="text-xs transition-colors"
-          :class="isDaytime ? 'text-neutral-500' : 'text-neutral-500'"
-        >
-          Karya portofolio akan segera diperbarui.
-        </p>
+    <!-- ================= PITA BERJALAN ================= -->
+    <div class="marquee-wrap overflow-hidden border-y border-ink/10 py-5 sm:py-7" aria-hidden="true">
+      <div class="marquee" style="--dur: 55s">
+        <div v-for="n in 2" :key="n" class="flex shrink-0 items-center">
+          <template v-for="w in ticker" :key="w">
+            <span class="whitespace-nowrap px-6 font-display text-3xl font-medium tracking-tight sm:px-10 sm:text-5xl">
+              {{ w }}
+            </span>
+            <span class="h-2 w-2 shrink-0 rotate-45 bg-accent" />
+          </template>
+        </div>
       </div>
+    </div>
 
-      <!-- Grid Bento Flexibel: 16:9 span 2 kolom, 3:4/9:16 span 1 kolom -->
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
-        <article 
-          v-for="(item, idx) in filteredItems" 
-          :key="item.id"
-          class="premium-card rounded-2xl overflow-hidden group flex flex-col justify-between transition-all duration-500 hover:shadow-2xl"
-          :class="getCardSpanClass(item.aspect_ratio)"
-        >
-          <!-- Top Card Meta Bar -->
-          <div 
-            class="p-3.5 flex items-center justify-between border-b transition-colors duration-500"
-            :class="isDaytime ? 'border-black/[0.06] bg-black/[0.02]' : 'border-white/[0.06] bg-[#121212]'"
-          >
-            <div class="flex items-center gap-2">
-              <span 
-                class="font-mono uppercase font-bold px-2 py-0.5 rounded text-[10px] transition-transform duration-300 group-hover:scale-105"
-                :class="getPlatformBadgeClass(item.platform)"
-              >
-                {{ item.platform }}
-              </span>
-              <span 
-                class="text-[11px] truncate max-w-[120px]"
-                :class="isDaytime ? 'text-neutral-600 font-medium' : 'text-neutral-400'"
-              >
-                {{ item.category || 'Karya' }}
-              </span>
-            </div>
+    <!-- ================= KARYA ================= -->
+    <section id="karya" class="mx-auto max-w-[1440px] scroll-mt-20 px-5 py-24 sm:px-8 md:py-32">
+      <header class="mb-12 flex flex-col gap-10 md:mb-16 md:flex-row md:items-end md:justify-between">
+        <div class="reveal" v-reveal>
+          <p class="label">01 — Arsip karya</p>
+          <h2 class="mt-4 font-display text-[clamp(2.8rem,7vw,6rem)] leading-[0.95] tracking-[-0.04em]">
+            Karya <span class="text-ink/40">terpilih</span>
+          </h2>
+        </div>
 
-            <a 
-              v-if="item.live_url" 
-              :href="item.live_url" 
-              target="_blank"
-              class="text-[11px] flex items-center gap-1 font-mono transition-all duration-300 hover:translate-x-0.5"
-              :class="isDaytime ? 'text-neutral-600 hover:text-black' : 'text-neutral-400 hover:text-white'"
+        <div class="reveal max-w-full overflow-x-auto" v-reveal="120">
+          <div ref="tabsEl" class="relative flex min-w-max gap-8 border-b border-ink/15" role="tablist" aria-label="Filter platform">
+            <button
+              v-for="t in tabs"
+              :key="t.key"
+              :ref="(el) => setTabEl(t.key, el as HTMLElement | null)"
+              type="button"
+              role="tab"
+              :aria-selected="active === t.key"
+              class="relative pb-3.5 text-sm transition-colors duration-200"
+              :class="active === t.key ? 'text-ink' : 'text-ink/60 hover:text-ink'"
+              @click="setFilter(t.key)"
             >
-              Buka ↗
-            </a>
-          </div>
-
-          <!-- MEDIA PREVIEW CONTAINER (Zoom Micro-interaction & Shimmer Gradient) -->
-          <div 
-            class="relative w-full bg-black overflow-hidden flex items-center justify-center"
-            :class="getAspectClass(item.aspect_ratio)"
-          >
-            <img 
-              :src="item.preview_url" 
-              class="w-full h-full object-cover transform scale-100 group-hover:scale-108 transition-all duration-700 ease-out will-change-transform"
-              alt="Preview Karya"
-              loading="lazy"
+              {{ t.label }}
+              <sup class="ml-1 text-[10px] tabular-nums">{{ t.count }}</sup>
+            </button>
+            <span
+              class="absolute -bottom-px left-0 h-[2px] bg-accent ease-out"
+              :class="ind.ready ? 'transition-[transform,width] duration-500' : ''"
+              :style="{ width: ind.w + 'px', transform: `translateX(${ind.x}px)` }"
+              aria-hidden="true"
             />
-
-            <!-- Ambient Gradient Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500"></div>
-            
-            <!-- Card Title (Always Crisp on Top of Image) -->
-            <div class="absolute bottom-3 left-3 right-3 z-10 transition-transform duration-300 group-hover:-translate-y-1">
-              <h3 class="text-sm font-bold text-white leading-snug drop-shadow-md line-clamp-2">
-                {{ item.title }}
-              </h3>
-            </div>
           </div>
+        </div>
+      </header>
 
-          <!-- Bottom Description & Details -->
-          <div 
-            class="p-4 space-y-3 border-t flex-1 flex flex-col justify-between transition-colors duration-500"
-            :class="isDaytime ? 'bg-white/60 border-black/[0.06]' : 'bg-[#111111] border-white/[0.06]'"
-          >
-            <p 
-              v-if="item.description" 
-              class="text-xs leading-relaxed line-clamp-2 transition-colors"
-              :class="isDaytime ? 'text-neutral-700' : 'text-neutral-300'"
-            >
-              {{ item.description }}
+      <!-- memuat -->
+      <div v-if="loading" class="grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4" aria-busy="true">
+        <div v-for="n in 8" :key="n">
+          <div class="skeleton" :class="n % 4 === 2 ? 'aspect-[16/9] sm:col-span-2' : 'aspect-[3/4]'" />
+          <div class="skeleton mt-4 h-3 w-1/3" />
+          <div class="skeleton mt-3 h-5 w-2/3" />
+        </div>
+      </div>
+
+      <!-- gagal -->
+      <div v-else-if="error" class="border border-dashed border-ink/25 px-6 py-16 text-center" role="alert">
+        <p class="font-display text-2xl">{{ error }}</p>
+        <p class="mt-2 text-sm text-ink/65">Periksa koneksi internet, lalu coba lagi.</p>
+        <button type="button" class="btn-ink mt-6" @click="reload"><span>Coba lagi</span></button>
+      </div>
+
+      <!-- kosong -->
+      <div v-else-if="!filtered.length" class="border border-dashed border-ink/25 px-6 py-16 text-center">
+        <p class="font-display text-2xl">Belum ada karya di sini.</p>
+        <p class="mt-2 text-sm text-ink/65">Kategori ini akan segera diisi.</p>
+      </div>
+
+      <!-- grid -->
+      <TransitionGroup
+        v-else
+        name="work"
+        tag="div"
+        class="grid grid-flow-dense grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      >
+        <WorkCard
+          v-for="(it, i) in visible"
+          :key="it.id"
+          :item="it"
+          :index="i"
+          :delay="(i % 4) * 90"
+          @open="openId = $event"
+        />
+      </TransitionGroup>
+
+      <div v-if="remaining > 0" class="mt-20 flex justify-center">
+        <button type="button" class="group flex flex-col items-center gap-3" @click="more">
+          <span class="link-u font-display text-2xl tracking-tight">Tampilkan {{ Math.min(PAGE, remaining) }} karya lagi</span>
+          <span class="label inline-flex items-center gap-2">
+            {{ remaining }} tersisa
+            <Icon name="arrow-down" :size="12" class="transition-transform duration-300 group-hover:translate-y-1" />
+          </span>
+        </button>
+      </div>
+    </section>
+
+    <!-- ================= KONTAK ================= -->
+    <section id="kontak" class="scroll-mt-20 border-t border-ink/10">
+      <div class="mx-auto max-w-[1440px] px-5 py-24 sm:px-8 md:py-36">
+        <p class="label reveal" v-reveal>02 — Kontak</p>
+        <h2
+          class="reveal mt-6 font-display text-[clamp(2.8rem,9vw,8rem)] leading-[0.94] tracking-[-0.045em]"
+          v-reveal="100"
+        >
+          Punya ide?<br /><span class="text-ink/40">Ayo ngobrol.</span>
+        </h2>
+
+        <div class="mt-16 grid gap-12 lg:grid-cols-12">
+          <div class="reveal lg:col-span-6" v-reveal="200">
+            <p class="max-w-md text-[15px] leading-relaxed text-ink/70">
+              Butuh desain kemasan, aset konten, atau website sederhana? Kirim pesan singkat berisi kebutuhan dan
+              tenggat waktunya, nanti saya balas.
             </p>
-
-            <div v-if="item.tech_stack && item.tech_stack.length > 0" class="flex flex-wrap gap-1.5 pt-1">
-              <span 
-                v-for="tag in item.tech_stack" 
-                :key="tag"
-                class="text-[10px] px-2 py-0.5 rounded-md border font-mono transition-all duration-300"
-                :class="isDaytime 
-                  ? 'bg-black/[0.04] border-black/[0.08] text-neutral-700 hover:bg-black/[0.08]' 
-                  : 'bg-white/[0.05] border-white/[0.1] text-neutral-300 hover:bg-white/[0.1]'"
-              >
-                {{ tag }}
-              </span>
-            </div>
-
-            <div 
-              class="flex items-center justify-between pt-2 border-t text-xs transition-colors"
-              :class="isDaytime ? 'border-black/[0.06]' : 'border-white/[0.04]'"
-            >
-              <a 
-                v-if="item.live_url" 
-                :href="item.live_url" 
-                target="_blank"
-                class="font-medium inline-flex items-center gap-1 transition-all duration-300 hover:translate-x-1"
-                :class="isDaytime ? 'text-neutral-900 hover:text-blue-600' : 'text-white hover:text-neutral-200'"
-              >
-                Lihat Karya ↗
+            <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-4">
+              <a :href="primary.href" target="_blank" rel="noopener noreferrer" class="btn-ink">
+                <span>{{ primary.label }}</span>
+                <Icon name="arrow-up-right" :size="16" />
               </a>
-              <span class="text-[10px] font-mono text-neutral-500">
-                Rasio {{ item.aspect_ratio || '3:4' }}
-              </span>
+              <button v-if="email" type="button" class="link-u inline-flex items-center gap-2 text-sm" @click="copyEmail">
+                <Icon name="link" :size="15" />
+                Salin email
+              </button>
             </div>
           </div>
-        </article>
-      </div>
 
-    </section>
-
-    <!-- ============================================================= -->
-    <!-- 3. CONTACT FOOTER                                             -->
-    <!-- ============================================================= -->
-    <section 
-      id="contact" 
-      class="premium-card p-8 md:p-12 rounded-3xl text-center space-y-4 max-w-3xl mx-auto transition-all duration-500"
-    >
-      <h3 
-        class="text-2xl font-bold tracking-tight transition-colors duration-500"
-        :class="isDaytime ? 'text-black' : 'text-white'"
-      >
-        Tertarik Berkolaborasi?
-      </h3>
-      <p 
-        class="text-xs md:text-sm max-w-md mx-auto leading-relaxed transition-colors duration-500"
-        :class="isDaytime ? 'text-neutral-600' : 'text-neutral-400'"
-      >
-        Punya ide website, butuh aset desain visual, atau ingin berdiskusi santai? Hubungi saya kapan saja.
-      </p>
-      <div class="pt-2 flex justify-center gap-3">
-        <a 
-          href="mailto:amru@example.com" 
-          class="px-6 py-2.5 rounded-lg font-semibold text-xs transition-all duration-300 transform hover:scale-105"
-          :class="isDaytime ? 'bg-black text-white hover:bg-neutral-800' : 'bg-white text-black hover:bg-neutral-200'"
-        >
-          Kirim Email
-        </a>
-        <a 
-          href="https://www.tiktok.com/@by.amruu" 
-          target="_blank" 
-          class="px-6 py-2.5 rounded-lg border text-xs transition-all duration-300 transform hover:scale-105"
-          :class="isDaytime 
-            ? 'bg-black/[0.04] border-black/[0.08] text-neutral-800 hover:bg-black/[0.08]' 
-            : 'bg-white/[0.05] border-white/[0.08] text-neutral-300 hover:bg-white/[0.1]'"
-        >
-          TikTok ↗
-        </a>
+          <ul class="reveal lg:col-span-6" v-reveal="300">
+            <li v-for="s in socials" :key="s.name" class="border-t border-ink/15 last:border-b">
+              <a
+                :href="s.href"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="group flex items-center justify-between px-0 py-5 transition-[padding,background-color,color] duration-300 ease-out hover:bg-ink hover:px-5 hover:text-paper focus-visible:bg-ink focus-visible:px-5 focus-visible:text-paper"
+              >
+                <span class="font-display text-2xl tracking-tight">{{ s.name }}</span>
+                <span class="flex items-center gap-3 text-sm opacity-70">
+                  {{ s.handle }}
+                  <Icon
+                    name="arrow-up-right"
+                    :size="16"
+                    class="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                  />
+                </span>
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
 
+    <WorkModal v-model="openId" :items="filtered" />
   </div>
 </template>
 
-<script setup>
-import { ref, computed, onMounted } from 'vue'
+<script setup lang="ts">
+const PAGE = 12
 
-const props = defineProps({
-  isDaytime: {
-    type: Boolean,
-    default: false
-  }
-})
+const config = useRuntimeConfig()
+const toast = useToast()
+const { items, loading, error, load } = usePortfolio()
+const rx = useReactions()
 
-const items = ref([])
-const activeFilter = ref('all')
+const active = ref('all')
+const limit = ref(PAGE)
+const openId = ref<string | null>(null)
 
-const { $supabase } = useNuxtApp()
+const present = computed(() => PLATFORMS.filter((p) => items.value.some((i) => i.platform === p.key)))
 
-const availablePlatforms = computed(() => {
-  const set = new Set(items.value.map(i => i.platform))
-  return Array.from(set).filter(Boolean)
-})
+const tabs = computed(() => [
+  { key: 'all', label: 'Semua', count: items.value.length },
+  ...present.value.map((p) => ({
+    key: p.key as string,
+    label: p.label as string,
+    count: items.value.filter((i) => i.platform === p.key).length
+  }))
+])
 
-const filteredItems = computed(() => {
-  if (activeFilter.value === 'all') return items.value
-  return items.value.filter(i => i.platform === activeFilter.value)
-})
+const stats = computed(() =>
+  items.value.length
+    ? [
+        { label: 'Total karya', value: items.value.length },
+        ...present.value.map((p) => ({
+          label: p.label as string,
+          value: items.value.filter((i) => i.platform === p.key).length
+        }))
+      ]
+    : []
+)
 
-const getFilterButtonClass = (plat) => {
-  const isSelected = activeFilter.value === plat
-  if (props.isDaytime) {
-    return isSelected
-      ? 'bg-black text-white font-semibold border-black shadow-md'
-      : 'bg-black/[0.03] text-neutral-600 border-black/[0.08] hover:text-black hover:bg-black/[0.06]'
-  } else {
-    return isSelected
-      ? 'bg-white text-black font-semibold border-white shadow-md'
-      : 'bg-white/[0.04] text-neutral-400 border-white/[0.08] hover:text-white hover:bg-white/[0.08]'
+const filtered = computed(() =>
+  active.value === 'all' ? items.value : items.value.filter((i) => i.platform === active.value)
+)
+const visible = computed(() => filtered.value.slice(0, limit.value))
+const remaining = computed(() => Math.max(0, filtered.value.length - limit.value))
+
+function setFilter(key: string) {
+  active.value = key
+  limit.value = PAGE
+}
+function more() {
+  limit.value += PAGE
+}
+async function reload() {
+  await Promise.all([load(), rx.load(true)])
+}
+
+// --- indikator tab yang meluncur ---
+const tabEls: Record<string, HTMLElement> = {}
+const ind = reactive({ x: 0, w: 0, ready: false })
+
+function setTabEl(key: string, el: HTMLElement | null) {
+  if (el) tabEls[key] = el
+}
+function updateIndicator() {
+  const el = tabEls[active.value]
+  if (!el) return
+  ind.x = el.offsetLeft
+  ind.w = el.offsetWidth
+  if (!ind.ready) requestAnimationFrame(() => (ind.ready = true))
+}
+watch([active, tabs], () => nextTick(updateIndicator), { flush: 'post' })
+
+function scrollTo(id: string) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  document.getElementById(id)?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' })
+}
+
+// --- kontak ---
+const email = computed(() => (config.public.contactEmail as string) || '')
+const primary = computed(() =>
+  email.value
+    ? { label: email.value, href: `mailto:${email.value}` }
+    : { label: 'Kirim DM di Instagram', href: 'https://ig.me/m/by.amruu' }
+)
+const socials = [
+  { name: 'Instagram', handle: '@by.amruu', href: 'https://www.instagram.com/by.amruu/' },
+  { name: 'TikTok', handle: '@by.amruu', href: 'https://www.tiktok.com/@by.amruu' },
+  { name: 'GitHub', handle: 'by-amruu', href: 'https://github.com/by-amruu' }
+]
+async function copyEmail() {
+  try {
+    await navigator.clipboard.writeText(email.value)
+    toast.success('Email disalin ke clipboard.')
+  } catch {
+    toast.error('Tidak bisa menyalin otomatis.')
   }
 }
 
-const getAspectClass = (ratio) => {
-  if (ratio === '16:9') return 'aspect-[16/9]'
-  if (ratio === '9:16') return 'aspect-[9/16]'
-  return 'aspect-[3/4]'
-}
-
-const getCardSpanClass = (ratio) => {
-  if (ratio === '16:9') {
-    return 'sm:col-span-2'
-  }
-  return 'col-span-1'
-}
-
-const getPlatformBadgeClass = (plat) => {
-  switch (plat) {
-    case 'tiktok': return 'bg-black text-white border border-white/20'
-    case 'instagram': return 'bg-gradient-to-r from-pink-600 to-purple-600 text-white'
-    case 'pinterest': return 'bg-red-700 text-white'
-    case 'website': return 'bg-emerald-600/20 text-emerald-500 border border-emerald-500/30'
-    default: return 'bg-white/10 text-white'
-  }
-}
+const ticker = ['Desain Kemasan', 'Poster & Backdrop', 'Carousel Instagram', 'Konten TikTok', 'Moodboard Pinterest', 'Web App']
 
 onMounted(async () => {
-  if (!$supabase) return
-
-  try {
-    const { data, error } = await $supabase
-      .from('portfolio_items')
-      .select('*')
-      .order('order_priority', { ascending: false })
-      .order('created_at', { ascending: false })
-
-    if (!error && data) {
-      items.value = data
-    }
-  } catch (err) {
-    console.warn('[Fetch portfolio_items error]', err)
-  }
+  updateIndicator()
+  window.addEventListener('resize', updateIndicator)
+  ;(document as any).fonts?.ready?.then(updateIndicator)
+  await Promise.all([load(), rx.load()])
 })
+
+onBeforeUnmount(() => window.removeEventListener('resize', updateIndicator))
 </script>
