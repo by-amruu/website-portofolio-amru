@@ -7,36 +7,56 @@
           <p class="label">Area pribadi</p>
           <h1 class="mt-4 font-display text-6xl leading-none tracking-[-0.04em]">Masuk<span class="text-accent">.</span></h1>
           <p class="mt-5 text-sm leading-relaxed text-ink/70">
-            Khusus pemilik portofolio. Masukkan kata sandi untuk menambah, mengubah, atau menghapus karya.
+            Khusus pemilik portofolio. Masuk menggunakan akun terverifikasi Supabase Auth untuk mengelola karya.
           </p>
 
-          <div class="mt-10">
-            <label for="pw" class="label">Kata sandi</label>
-            <div class="relative mt-3">
+          <div class="mt-8 space-y-5">
+            <div>
+              <label for="email" class="label">Email admin</label>
               <input
-                id="pw"
-                ref="pwEl"
-                v-model="password"
-                :type="showPw ? 'text' : 'password'"
-                class="field pr-28"
-                autocomplete="current-password"
+                id="email"
+                ref="emailEl"
+                v-model="email"
+                type="email"
+                class="field mt-2"
+                autocomplete="email"
+                placeholder="nama@email.com"
+                required
                 :aria-invalid="!!loginError"
-                aria-describedby="pw-err"
                 @input="loginError = ''"
               />
-              <button
-                type="button"
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink/65 hover:text-ink"
-                @click="showPw = !showPw"
-              >
-                {{ showPw ? 'Sembunyikan' : 'Tampilkan' }}
-              </button>
             </div>
-            <p id="pw-err" class="mt-3 min-h-[1.25rem] text-sm text-accent" role="alert">{{ loginError }}</p>
+
+            <div>
+              <label for="pw" class="label">Kata sandi</label>
+              <div class="relative mt-2">
+                <input
+                  id="pw"
+                  ref="pwEl"
+                  v-model="password"
+                  :type="showPw ? 'text' : 'password'"
+                  class="field pr-28"
+                  autocomplete="current-password"
+                  placeholder="••••••••"
+                  required
+                  :aria-invalid="!!loginError"
+                  aria-describedby="pw-err"
+                  @input="loginError = ''"
+                />
+                <button
+                  type="button"
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-ink/65 hover:text-ink"
+                  @click="showPw = !showPw"
+                >
+                  {{ showPw ? 'Sembunyikan' : 'Tampilkan' }}
+                </button>
+              </div>
+              <p id="pw-err" class="mt-2 min-h-[1.25rem] text-sm text-accent" role="alert">{{ loginError }}</p>
+            </div>
           </div>
 
-          <button type="submit" class="btn-ink mt-4 w-full justify-center">
-            <span>Buka konsol</span>
+          <button type="submit" :disabled="loggingIn" class="btn-ink mt-4 w-full justify-center disabled:opacity-50">
+            <span>{{ loggingIn ? 'Memverifikasi...' : 'Buka konsol' }}</span>
             <Icon name="arrow-right" :size="16" />
           </button>
         </form>
@@ -182,50 +202,70 @@ useHead({
   meta: [{ name: 'robots', content: 'noindex,nofollow' }]
 })
 
-const ADMIN_PASSWORD = 'amru2026'
-const SESSION_KEY = 'admin-session'
-
 const supabase = (useNuxtApp() as any).$supabase
 const toast = useToast()
 const { confirm } = useConfirm()
 const rx = useReactions()
 
-// --- sesi ---
+// --- sesi Supabase Auth ---
 const authed = ref(false)
+const email = ref('')
 const password = ref('')
 const showPw = ref(false)
 const loginError = ref('')
 const shaking = ref(false)
+const loggingIn = ref(false)
+const emailEl = ref<HTMLInputElement | null>(null)
 const pwEl = ref<HTMLInputElement | null>(null)
 
-function login() {
-  if (password.value === ADMIN_PASSWORD) {
-    authed.value = true
-    password.value = ''
-    loginError.value = ''
-    try {
-      sessionStorage.setItem(SESSION_KEY, '1')
-    } catch {
-      /* abaikan */
+async function login() {
+  if (!supabase) {
+    toast.error('Supabase client belum tersedia.')
+    return
+  }
+  if (!email.value || !password.value) {
+    loginError.value = 'Email dan kata sandi wajib diisi.'
+    return
+  }
+
+  loggingIn.value = true
+  loginError.value = ''
+
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email.value.trim(),
+      password: password.value
+    })
+
+    if (error) {
+      loginError.value = error.message === 'Invalid login credentials' 
+        ? 'Email atau kata sandi tidak cocok.' 
+        : error.message
+      shaking.value = true
+      setTimeout(() => (shaking.value = false), 550)
+      pwEl.value?.focus()
+      pwEl.value?.select()
+      return
     }
-    toast.success('Selamat datang kembali.')
-    refresh()
-  } else {
-    loginError.value = 'Kata sandi salah.'
-    shaking.value = true
-    setTimeout(() => (shaking.value = false), 550)
-    pwEl.value?.focus()
-    pwEl.value?.select()
+
+    if (data.session) {
+      authed.value = true
+      password.value = ''
+      toast.success('Autentikasi Supabase berhasil. Selamat datang!')
+      refresh()
+    }
+  } catch (err: any) {
+    loginError.value = err.message || 'Terjadi kesalahan sistem saat login.'
+  } finally {
+    loggingIn.value = false
   }
 }
 
-function logout() {
-  authed.value = false
-  try {
-    sessionStorage.removeItem(SESSION_KEY)
-  } catch {
-    /* abaikan */
+async function logout() {
+  if (supabase) {
+    await supabase.auth.signOut()
   }
+  authed.value = false
   toast.info('Sesi diakhiri.')
 }
 
@@ -346,9 +386,13 @@ async function restore(it: PortfolioItem) {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  if (!supabase) return
+
+  // Periksa apakah sudah ada sesi login aktif di Supabase Auth
   try {
-    if (sessionStorage.getItem(SESSION_KEY) === '1') {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) {
       authed.value = true
       refresh()
       return
@@ -356,6 +400,13 @@ onMounted(() => {
   } catch {
     /* abaikan */
   }
-  pwEl.value?.focus()
+
+  // Listener bila status auth berubah (mis. token refresh atau sign out)
+  supabase.auth.onAuthStateChange((_event: string, session: any) => {
+    authed.value = !!session
+    if (session) refresh()
+  })
+
+  emailEl.value?.focus()
 })
 </script>
