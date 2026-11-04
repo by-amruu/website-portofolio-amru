@@ -23,7 +23,7 @@
             <Transition :name="direction === 'next' ? 'slide-next' : 'slide-prev'" mode="out-in">
               <figure :key="current.id" class="flex max-h-full max-w-full items-center justify-center">
                 <img
-                  :src="current.preview_url"
+                  :src="modalImageUrl"
                   :alt="current.title"
                   draggable="false"
                   class="max-h-[62vh] w-auto max-w-full object-contain shadow-[0_30px_70px_-30px_rgb(0_0_0/0.55)] md:max-h-[calc(100dvh-8.5rem)]"
@@ -140,6 +140,16 @@ const direction = ref<'next' | 'prev'>('next')
 const index = computed(() => props.items.findIndex((i) => i.id === props.modelValue))
 const current = computed(() => (index.value >= 0 ? props.items[index.value] : null))
 const href = computed(() => safeUrl(current.value?.live_url))
+
+// Pada modal, muat gambar jernih (~1400px) berformat WebP dengan kualitas 85%
+const modalImageUrl = computed(() => {
+  if (!current.value?.preview_url) return ''
+  return getOptimizedImageUrl(current.value.preview_url, {
+    width: 1440,
+    quality: 85,
+    format: 'webp'
+  })
+})
 
 let previous: HTMLElement | null = null
 

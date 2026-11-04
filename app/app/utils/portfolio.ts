@@ -64,3 +64,29 @@ export function safeUrl(value?: string | null): string {
   return value && isHttpUrl(value) ? value : ''
 }
 
+/**
+ * Optimasi CDN Gambar Supabase:
+ * Mengubah URL bucket Supabase asli menjadi URL transform (WebP, resized, quality 80)
+ * sehingga ukuran file turun dari beberapa MB menjadi ~50-100 KB.
+ * Jika bukan URL Supabase (mis. gambar external), kembalikan URL aslinya.
+ */
+export function getOptimizedImageUrl(
+  url?: string | null,
+  options: { width?: number; quality?: number; format?: 'webp' | 'avif' | 'origin' } = {}
+): string {
+  if (!url) return ''
+  const { width = 720, quality = 80, format = 'webp' } = options
+
+  // Pola Supabase Storage URL: /storage/v1/object/public/...
+  if (url.includes('/storage/v1/object/public/')) {
+    const transformed = url.replace(
+      '/storage/v1/object/public/',
+      '/storage/v1/render/image/public/'
+    )
+    const joiner = transformed.includes('?') ? '&' : '?'
+    return `${transformed}${joiner}width=${width}&quality=${quality}&format=${format}`
+  }
+
+  return url
+}
+

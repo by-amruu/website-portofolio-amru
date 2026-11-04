@@ -413,14 +413,54 @@ function onTagKey(e: KeyboardEvent) {
   }
 }
 
+// Kompresi gambar client-side (resize maks 1920px & konversi ke WebP) sebelum upload
+async function compressImage(file: File): Promise<Blob> {
+  // Jika format svg atau gif, biarkan utuh agar animasi/vektor tidak rusak
+  if (file.type === 'image/svg+xml' || file.type === 'image/gif') return file
+
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const MAX_DIM = 1920
+        let { width, height } = img
+        if (width > MAX_DIM || height > MAX_DIM) {
+          if (width > height) {
+            height = Math.round((height * MAX_DIM) / width)
+            width = MAX_DIM
+          } else {
+            width = Math.round((width * MAX_DIM) / height)
+            height = MAX_DIM
+          }
+        }
+        const cvs = document.createElement('canvas')
+        cvs.width = width
+        cvs.height = height
+        const ctx = cvs.getContext('2d')
+        ctx?.drawImage(img, 0, 0, width, height)
+        cvs.toBlob(
+          (blob) => resolve(blob || file),
+          'image/webp',
+          0.85
+        )
+      }
+      img.onerror = () => resolve(file)
+      img.src = e.target?.result as string
+    }
+    reader.onerror = () => resolve(file)
+    reader.readAsDataURL(file)
+  })
+}
+
 // --- unggah ---
 async function upload(file: File) {
   if (!file.type.startsWith('image/')) {
     toast.error('File harus berupa gambar.')
     return
   }
-  if (file.size > 8 * 1024 * 1024) {
-    toast.error('Ukuran gambar maksimal 8 MB.')
+  if (file.size > 15 * 1024 * 1024) {
+    toast.error('Ukuran gambar maksimal 15 MB.')
     return
   }
   if (!supabase) {
@@ -429,17 +469,21 @@ async function upload(file: File) {
   }
   uploading.value = true
   try {
-    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
+    const isSvgOrGif = file.type === 'image/svg+xml' || file.type === 'image/gif'
+    const compressedBlob = await compressImage(file)
+    const ext = isSvgOrGif ? (file.name.split('.').pop() || 'png') : 'webp'
+    const contentType = isSvgOrGif ? file.type : 'image/webp'
     const name = `img_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`
+
     const { error } = await supabase.storage
       .from('portfolio-media')
-      .upload(name, file, { cacheControl: '31536000', upsert: false, contentType: file.type })
+      .upload(name, compressedBlob, { cacheControl: '31536000', upsert: false, contentType })
     if (error) throw error
     const { data } = supabase.storage.from('portfolio-media').getPublicUrl(name)
     form.value.preview_url = data.publicUrl
     imgFailed.value = false
     delete errors.preview_url
-    toast.success('Gambar terunggah.')
+    toast.success('Gambar terkompresi & terunggah optimal.')
   } catch (err: any) {
     toast.error(err?.message || 'Unggah gagal.', { title: 'Unggah gagal' })
   } finally {
