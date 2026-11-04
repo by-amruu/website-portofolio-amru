@@ -4,86 +4,189 @@
 
 @layer base {
   body {
-    background-color: #000000;
-    color: #EDEDED;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     -webkit-tap-highlight-color: transparent;
     overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
 }
 
-/* Linear / Vercel Glassmorphism Card System */
-.premium-card {
+/* -------------------------------------------------------------
+   THEME CARD SYSTEMS (Dark vs Light Adaptive)
+------------------------------------------------------------- */
+.theme-dark .premium-card {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.7);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.premium-card:hover {
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 100%);
+.theme-dark .premium-card:hover {
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 0 16px 40px -4px rgba(0, 0, 0, 0.9), 0 0 25px rgba(255, 255, 255, 0.06);
 }
 
-.premium-pill {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #A1A1AA;
+.theme-light .premium-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.85) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Luxury Architectural Background System (Ultra-lightweight GPU Accelerated) */
-.bg-architectural-grid {
-  background-size: 64px 64px;
+.theme-light .premium-card:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+  transform: translateY(-4px) scale(1.008);
+  box-shadow: 0 20px 35px -4px rgba(0, 0, 0, 0.12), 0 0 20px rgba(0, 0, 0, 0.04);
+}
+
+/* -------------------------------------------------------------
+   ARCHITECTURAL GRID BACKGROUND (Day & Night)
+------------------------------------------------------------- */
+.theme-dark .bg-architectural-grid {
+  background-size: 52px 52px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 25%, #000 35%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 25%, #000 35%, transparent 100%);
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%);
 }
 
-@keyframes beam-vertical {
+.theme-light .bg-architectural-grid {
+  background-size: 52px 52px;
+  background-image: 
+    linear-gradient(to right, rgba(0, 0, 0, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.045) 1px, transparent 1px);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 30%, #000 40%, transparent 100%);
+}
+
+/* -------------------------------------------------------------
+   MASSIVE CONTINUOUS KEYFRAME ANIMATIONS
+------------------------------------------------------------- */
+
+/* 1. Fluid Aurora Breathing Waves */
+@keyframes aurora-float-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(120px, 60px) scale(1.2) rotate(15deg);
+  }
+  66% {
+    transform: translate(-70px, 100px) scale(0.85) rotate(-10deg);
+  }
+}
+
+@keyframes aurora-float-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(-100px, -70px) scale(1.15) rotate(-12deg);
+  }
+  66% {
+    transform: translate(80px, -90px) scale(0.9) rotate(8deg);
+  }
+}
+
+@keyframes aurora-float-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(90px, -60px) scale(1.25);
+  }
+}
+
+.animate-aurora-1 {
+  animation: aurora-float-1 20s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.animate-aurora-2 {
+  animation: aurora-float-2 24s cubic-bezier(0.4, 0, 0.2, 1) infinite reverse;
+}
+.animate-aurora-3 {
+  animation: aurora-float-3 18s cubic-bezier(0.4, 0, 0.2, 1) infinite 2s;
+}
+
+/* 2. Precision Laser Stream Beams (Vertikal & Horizontal) */
+@keyframes beam-laser-v {
   0% {
-    transform: translateY(-100%) scaleY(0.5);
+    transform: translateY(-100%) scaleY(0.4);
     opacity: 0;
   }
-  20% {
+  15% {
     opacity: 1;
   }
-  80% {
+  85% {
     opacity: 1;
   }
   100% {
-    transform: translateY(100vh) scaleY(1.2);
+    transform: translateY(100vh) scaleY(1.4);
     opacity: 0;
   }
 }
 
-@keyframes beam-horizontal {
+@keyframes beam-laser-h {
   0% {
-    transform: translateX(-100%) scaleX(0.5);
+    transform: translateX(-100%) scaleX(0.4);
     opacity: 0;
   }
-  20% {
+  15% {
     opacity: 1;
   }
-  80% {
+  85% {
     opacity: 1;
   }
   100% {
-    transform: translateX(100vw) scaleX(1.2);
+    transform: translateX(100vw) scaleX(1.4);
     opacity: 0;
   }
 }
 
-.animate-beam-v-1 {
-  animation: beam-vertical 11s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+.animate-laser-v-1 {
+  animation: beam-laser-v 8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+.animate-laser-v-2 {
+  animation: beam-laser-v 12s cubic-bezier(0.4, 0, 0.2, 1) infinite 3s;
+}
+.animate-laser-v-3 {
+  animation: beam-laser-v 10s cubic-bezier(0.4, 0, 0.2, 1) infinite 5s;
+}
+.animate-laser-h-1 {
+  animation: beam-laser-h 11s cubic-bezier(0.4, 0, 0.2, 1) infinite 1.5s;
+}
+.animate-laser-h-2 {
+  animation: beam-laser-h 14s cubic-bezier(0.4, 0, 0.2, 1) infinite 6s;
 }
 
-.animate-beam-v-2 {
-  animation: beam-vertical 16s cubic-bezier(0.4, 0, 0.2, 1) infinite 4s;
+/* 3. Floating Starlight / Particle Sparks */
+@keyframes particle-drift {
+  0%, 100% {
+    transform: translateY(0) scale(0.9);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-35px) scale(1.4);
+    opacity: 1;
+  }
 }
 
-.animate-beam-h-1 {
-  animation: beam-horizontal 14s cubic-bezier(0.4, 0, 0.2, 1) infinite 2s;
+.animate-particle-1 { animation: particle-drift 6s ease-in-out infinite; }
+.animate-particle-2 { animation: particle-drift 8s ease-in-out infinite 2s; }
+.animate-particle-3 { animation: particle-drift 7s ease-in-out infinite 4s; }
+.animate-particle-4 { animation: particle-drift 9s ease-in-out infinite 1s; }
+.animate-particle-5 { animation: particle-drift 6.5s ease-in-out infinite 3.5s; }
+
+/* 4. Massive UI Elements Micro-Animations (Card Entrance Stagger) */
+@keyframes element-float-gentle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float-gentle {
+  animation: element-float-gentle 5s ease-in-out infinite;
 }
