@@ -23,6 +23,7 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
         { name: 'description', content: 'Koleksi karya website, desain kemasan, edukasi grafis, dan proyek kreatif lintas platform oleh by.amruu.' },
         { name: 'theme-color', content: '#0b0b0c' },
+        { name: 'p:domain_verify', content: 'ee86de96c70a3ebc11b6cda953ee946d' },
         { property: 'og:type', content: 'website' },
         { property: 'og:title', content: 'by.amruu | Portfolio & Creative Works' },
         { property: 'og:description', content: 'Koleksi karya website, desain kemasan, edukasi grafis, dan proyek kreatif lintas platform.' }
