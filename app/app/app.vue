@@ -146,6 +146,7 @@ const { mode, theme, clock, phase, init, apply, cycle } = useTheme()
 
 const links = [
   { id: 'karya', label: 'Karya' },
+  { id: 'cv', label: 'CV & Pengalaman' },
   { id: 'kontak', label: 'Kontak' }
 ]
 const wordmark = 'by.amruu'.split('')

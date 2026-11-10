@@ -1,3 +1,24 @@
+export interface CvSettings {
+  id?: string
+  design_bio: string
+  dev_bio: string
+  design_cv_url: string | null
+  dev_cv_url: string | null
+}
+
+export interface CvEntry {
+  id?: string
+  created_at?: string
+  role_type: 'design' | 'dev' | 'both'
+  entry_type: 'experience' | 'education'
+  title: string
+  organization: string
+  period: string
+  description: string | null
+  skills: string[]
+  order_priority: number
+}
+
 export interface PortfolioItem {
   id: string
   created_at: string

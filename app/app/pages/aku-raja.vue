@@ -75,19 +75,52 @@
             <p class="label flex items-center gap-2">
               <span class="h-1.5 w-1.5 rounded-full bg-accent" /> Sesi aktif
             </p>
-            <h1 class="mt-3 font-display text-5xl leading-none tracking-[-0.04em] md:text-7xl">Kelola karya</h1>
+            <h1 class="mt-3 font-display text-5xl leading-none tracking-[-0.04em] md:text-7xl">
+              {{ activeAdminTab === 'portfolio' ? 'Kelola karya' : 'Kelola CV & Profil' }}
+            </h1>
           </div>
-          <div class="flex items-center gap-6">
+          <div class="flex items-center gap-4 sm:gap-6">
+            <!-- Switcher Tab Dashboard -->
+            <div class="flex items-center border border-ink/20 p-1">
+              <button
+                type="button"
+                class="px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors"
+                :class="activeAdminTab === 'portfolio' ? 'bg-ink text-paper' : 'text-ink/60 hover:text-ink'"
+                @click="activeAdminTab = 'portfolio'"
+              >
+                Koleksi Karya
+              </button>
+              <button
+                type="button"
+                class="px-4 py-2 text-xs font-medium uppercase tracking-wider transition-colors"
+                :class="activeAdminTab === 'cv' ? 'bg-ink text-paper' : 'text-ink/60 hover:text-ink'"
+                @click="activeAdminTab = 'cv'"
+              >
+                CV &amp; Pengalaman
+              </button>
+            </div>
+
             <button type="button" class="link-u inline-flex items-center gap-2 text-sm text-ink/75 hover:text-ink" @click="logout">
               <Icon name="logout" :size="15" /> Keluar
             </button>
-            <button type="button" class="btn-ink" @click="openNew">
+            <button v-if="activeAdminTab === 'portfolio'" type="button" class="btn-ink" @click="openNew">
               <Icon name="plus" :size="16" />
               <span>Karya baru</span>
             </button>
           </div>
         </header>
 
+        <!-- KONTEN TAB: KELOLA CV -->
+        <div v-if="activeAdminTab === 'cv'" class="mt-10">
+          <AdminCvManager
+            :settings="cvSettings"
+            :entries="cvEntries"
+            @refresh-cv="refreshCvData"
+          />
+        </div>
+
+        <!-- KONTEN TAB: KELOLA KARYA -->
+        <div v-else>
         <!-- statistik -->
         <dl class="rise-in mt-8 grid grid-cols-2 gap-px border border-ink/15 bg-ink/15 md:grid-cols-3 lg:grid-cols-6" style="--d: 60ms">
           <div v-for="s in stats" :key="s.label" class="bg-paper p-5">
@@ -193,6 +226,7 @@
             di SQL Editor Supabase agar jumlahnya tercatat.
           </span>
         </p>
+        </div>
       </section>
     </Transition>
 
@@ -201,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-import type { PortfolioItem } from '~/utils/portfolio'
+import type { PortfolioItem, CvSettings, CvEntry } from '~/utils/portfolio'
 
 useHead({
   title: 'Konsol | by.amruu',
@@ -313,6 +347,21 @@ async function logout() {
   }
   authed.value = false
   toast.info('Sesi diakhiri.')
+}
+
+// --- tab admin & cv state ---
+const activeAdminTab = ref<'portfolio' | 'cv'>('portfolio')
+const cvSettings = ref<CvSettings | null>(null)
+const cvEntries = ref<CvEntry[]>([])
+
+async function refreshCvData() {
+  if (!supabase) return
+  const [sRes, eRes] = await Promise.all([
+    supabase.from('cv_settings').select('*').eq('id', 'default').maybeSingle(),
+    supabase.from('cv_entries').select('*').order('order_priority', { ascending: false }).order('created_at', { ascending: false })
+  ])
+  if (sRes.data) cvSettings.value = sRes.data as CvSettings
+  if (eRes.data) cvEntries.value = eRes.data as CvEntry[]
 }
 
 // --- data ---
@@ -456,7 +505,7 @@ onMounted(async () => {
         authed.value = true
         updateActivity()
         attachActivityListeners()
-        await refresh()
+        await Promise.all([refresh(), refreshCvData()])
         checkingSession.value = false
         return
       }
@@ -474,6 +523,7 @@ onMounted(async () => {
       updateActivity()
       attachActivityListeners()
       refresh()
+      refreshCvData()
     } else {
       detachActivityListeners()
     }

@@ -34,6 +34,9 @@
               <span>Lihat karya</span>
               <Icon name="arrow-down" :size="16" />
             </button>
+            <button type="button" class="btn-line" @click="scrollTo('cv')">
+              <span>Lihat CV &amp; Pengalaman</span>
+            </button>
             <button type="button" class="link-u inline-flex items-center gap-2 text-sm" @click="scrollTo('kontak')">
               Hubungi saya
               <Icon name="arrow-up-right" :size="14" />
@@ -155,6 +158,9 @@
       </div>
     </section>
 
+    <!-- ================= CV & PENGALAMAN ================= -->
+    <CvSection :settings="cvSettings" :entries="cvEntries" />
+
     <!-- ================= KONTAK ================= -->
     <section id="kontak" class="scroll-mt-20 border-t border-ink/10">
       <div class="mx-auto max-w-[1440px] px-5 py-24 sm:px-8 md:py-36">
@@ -213,12 +219,28 @@
 </template>
 
 <script setup lang="ts">
+import type { CvSettings, CvEntry } from '~/utils/portfolio'
+
 const PAGE = 12
 
+const supabase = (useNuxtApp() as any).$supabase
 const config = useRuntimeConfig()
 const toast = useToast()
 const { items, loading, error, load } = usePortfolio()
 const rx = useReactions()
+
+const cvSettings = ref<CvSettings | null>(null)
+const cvEntries = ref<CvEntry[]>([])
+
+async function loadCvData() {
+  if (!supabase) return
+  const [sRes, eRes] = await Promise.all([
+    supabase.from('cv_settings').select('*').eq('id', 'default').maybeSingle(),
+    supabase.from('cv_entries').select('*').order('order_priority', { ascending: false }).order('created_at', { ascending: false })
+  ])
+  if (sRes.data) cvSettings.value = sRes.data as CvSettings
+  if (eRes.data) cvEntries.value = eRes.data as CvEntry[]
+}
 
 const active = ref('all')
 const limit = ref(PAGE)
@@ -312,7 +334,7 @@ onMounted(async () => {
   updateIndicator()
   window.addEventListener('resize', updateIndicator)
   ;(document as any).fonts?.ready?.then(updateIndicator)
-  await Promise.all([load(), rx.load()])
+  await Promise.all([load(), rx.load(), loadCvData()])
 })
 
 onBeforeUnmount(() => window.removeEventListener('resize', updateIndicator))
